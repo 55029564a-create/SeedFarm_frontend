@@ -2,9 +2,9 @@ import { createGlobalStyle } from 'styled-components';
 
 const GlobalStyle = createGlobalStyle`
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
-
 * {
     box-sizing: border-box;
+    font-family: inherit;
   }
 
   :root {
@@ -25,9 +25,14 @@ const GlobalStyle = createGlobalStyle`
     -moz-osx-font-smoothing: grayscale;
     color: var(--primary-dark);
   }
+  
+    
 
     html {
     scroll-behavior: smooth;
+  }
+    input, button, textarea {
+    font-family: inherit;
   }
 `;
 
