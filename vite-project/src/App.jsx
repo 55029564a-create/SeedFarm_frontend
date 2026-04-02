@@ -16,26 +16,18 @@ import LoginPage from './Admin/Pages/LoginPage';
 //   return isDesktop ? <AdminPage /> : <FieldPage />;
 // };
 
-const Base = styled.div`
-  margin: 0;
-  padding: 0;
-`;
-
 function App() {
   return (
-    <Base>
-      <GlobalStyle />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/Login" element={<LoginPage />} />
-          <Route path="/Admin" element={<AdminPage />} />
-          <Route path="/Field" element={<FieldPage />} />
-          {/* 위에 동일. */}
-          {/* <Route path="/dashboard" element={<DashboardRouter />} /> */}
-        </Routes>
-      </BrowserRouter>
-    </Base>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/Login" element={<LoginPage />} />
+        <Route path="/Admin" element={<AdminPage />} />
+        <Route path="/Field" element={<FieldPage />} />
+        {/* 위에 동일. */}
+        {/* <Route path="/dashboard" element={<DashboardRouter />} /> */}
+      </Routes>
+    </BrowserRouter>
   );
 }
 
