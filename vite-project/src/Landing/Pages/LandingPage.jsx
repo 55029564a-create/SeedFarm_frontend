@@ -11,6 +11,7 @@ import Impact from '../Components/Impact';
 import UseCase from '../Components/UseCase';
 import System from '../Components/System';
 import CTA from '../Components/CTA';
+import ScrollToTop from '../Components/ScrollToTop';
 
 import { PageWrapper } from '../styles/landingStyled';
 
@@ -30,6 +31,8 @@ const LandingPage = () => {
       <CTA />
 
       <Footer />
+
+      <ScrollToTop />
     </PageWrapper>
   );
 };

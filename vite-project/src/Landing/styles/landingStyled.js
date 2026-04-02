@@ -91,6 +91,18 @@ export const PrimaryButton = styled.button`
   font-weight: 700;
   background: ${theme.colors.primary};
   color: ${theme.colors.white};
+  transition: all 0.3s ease; /* 💡 부드러운 애니메이션 속도 설정 */
+
+  &:hover {
+    background: #236026; /* 마우스 오버 시 살짝 어두운 녹색으로 변경 */
+    transform: translateY(-2px); /* 위로 2px 떠오르는 효과 */
+    box-shadow: 0 6px 16px rgba(46, 125, 50, 0.3); /* 은은한 그림자 추가 */
+  }
+
+  &:active {
+    transform: translateY(0); /* 클릭하는 순간 다시 제자리로 (눌리는 느낌) */
+    box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
+  }
 `;
 
 export const SecondaryButton = styled.button`
@@ -102,6 +114,18 @@ export const SecondaryButton = styled.button`
   font-weight: 700;
   background: ${theme.colors.white};
   color: ${theme.colors.text};
+  transition: all 0.3s ease; /* 💡 부드러운 애니메이션 속도 설정 */
+
+  &:hover {
+    border-color: ${theme.colors.primary}; /* 테두리가 녹색으로 변경 */
+    color: ${theme.colors.primary}; /* 글자색도 녹색으로 변경 */
+    transform: translateY(-2px); /* 위로 살짝 떠오름 */
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 `;
 
 export const CardGrid = styled.div`
@@ -129,6 +153,13 @@ export const BaseCard = styled.div`
   background: ${theme.colors.white};
   border: 1px solid ${theme.colors.border};
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+  transition: all 0.3s ease; /* 💡 추가 */
+
+  &:hover {
+    transform: translateY(-6px); /* 💡 마우스를 올리면 카드가 위로 쑥 올라옴 */
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); /* 💡 그림자가 더 넓고 진해짐 */
+    border-color: #c0d3c2; /* 💡 테두리 색상도 미세하게 진해짐 */
+  }
 `;
 
 export const IconCircle = styled.div`
@@ -157,6 +188,11 @@ export const FooterLink = styled.a`
   margin-bottom: 10px;
   color: rgba(255, 255, 255, 0.78);
   text-decoration: none;
+  transition: color 0.2s ease; /* 💡 추가 */
+
+  &:hover {
+    color: #66bb6a; /* 💡 마우스를 올리면 링크가 밝은 녹색으로 반짝임 */
+  }
 `;
 
 const fadeInUp = keyframes`

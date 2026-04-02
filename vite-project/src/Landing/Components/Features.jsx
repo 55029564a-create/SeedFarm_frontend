@@ -10,7 +10,7 @@ import {
   IconCircle,
   AnimatedBox,
 } from '../styles/landingStyled';
-import { useScrollFadeIn } from '../hooks/useScrollFadeIn';
+import { useScrollFadeIn } from '../../hooks/useScrollFadeIn';
 
 const FeatureCard = styled(BaseCard)`
   padding: 28px;

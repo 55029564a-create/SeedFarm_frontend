@@ -44,6 +44,13 @@ const Nav = styled.nav`
   a {
     text-decoration: none;
     color: inherit;
+    font-weight: 600; /* 💡 폰트 살짝 두껍게 */
+    transition: color 0.2s ease; /* 💡 색상 변경 애니메이션 */
+
+    &:hover {
+      color: ${theme.colors
+        .primary}; /* 💡 마우스 올리면 브랜드 컬러(녹색)로 변경 */
+    }
   }
 
   @media (max-width: 1024px) {

@@ -9,7 +9,7 @@ import {
   theme,
   AnimatedBox, // 💡 애니메이션 래퍼 추가
 } from '../styles/landingStyled';
-import { useScrollFadeIn } from '../hooks/useScrollFadeIn'; // 💡 커스텀 훅 추가
+import { useScrollFadeIn } from '../../hooks/useScrollFadeIn'; // 💡 커스텀 훅 추가
 
 const HeroSection = styled(Section)`
   min-height: 100vh;

@@ -21,6 +21,10 @@ const GlobalStyle = createGlobalStyle`
     font-family: 'Pretendard', 'Spoqa Han Sans Neo', 'SUIT', sans-serif;
     color: var(--primary-dark);
   }
+
+    html {
+    scroll-behavior: smooth;
+  }
 `;
 
 export default GlobalStyle;
