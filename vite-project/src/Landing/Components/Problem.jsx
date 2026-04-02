@@ -8,7 +8,9 @@ import {
   CardGrid,
   BaseCard,
   IconCircle,
+  AnimatedBox, // 💡 애니메이션 래퍼 추가
 } from '../styles/landingStyled';
+import { useScrollFadeIn } from '../hooks/useScrollFadeIn'; // 💡 커스텀 훅 추가
 
 const InfoCard = styled(BaseCard)`
   padding: 28px;
@@ -42,23 +44,37 @@ const data = [
 ];
 
 const Problem = () => {
+  // 💡 스크롤 감지 훅 호출
+  const { ref: sectionRef, className: animateClass } = useScrollFadeIn();
+
   return (
     <Section id="problem" bg="#FFFFFF">
-      <Container>
-        <SectionLabel>PROBLEM SECTION</SectionLabel>
-        <SectionTitle>기존 농업의 문제</SectionTitle>
-        <SectionDesc>
-          스마트한 분석과 자동화가 없으면 생산성과 안정성을 동시에 잡기
-          어렵습니다.
-        </SectionDesc>
+      {/* 💡 Container에 ref를 달아 이 영역이 보일 때 애니메이션이 시작되도록 합니다 */}
+      <Container ref={sectionRef}>
+        {/* 💡 텍스트 영역은 제일 먼저 나타나게 delay="0s" 적용 */}
+        <AnimatedBox className={animateClass} delay="0s">
+          <SectionLabel>PROBLEM SECTION</SectionLabel>
+          <SectionTitle>기존 농업의 문제</SectionTitle>
+          <SectionDesc>
+            스마트한 분석과 자동화가 없으면 생산성과 안정성을 동시에 잡기
+            어렵습니다.
+          </SectionDesc>
+        </AnimatedBox>
 
         <CardGrid columns={4}>
-          {data.map((item) => (
-            <InfoCard key={item.title}>
-              <IconCircle>!</IconCircle>
-              <h3>{item.title}</h3>
-              <p>{item.desc}</p>
-            </InfoCard>
+          {data.map((item, index) => (
+            // 💡 index를 활용해 0.1s, 0.2s, 0.3s, 0.4s 순으로 딜레이를 줍니다.
+            <AnimatedBox
+              key={item.title}
+              className={animateClass}
+              delay={`${0.1 + index * 0.1}s`}
+            >
+              <InfoCard>
+                <IconCircle>!</IconCircle>
+                <h3>{item.title}</h3>
+                <p>{item.desc}</p>
+              </InfoCard>
+            </AnimatedBox>
           ))}
         </CardGrid>
       </Container>

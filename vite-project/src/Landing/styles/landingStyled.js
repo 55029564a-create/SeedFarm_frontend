@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 export const theme = {
   colors: {
@@ -157,4 +157,26 @@ export const FooterLink = styled.a`
   margin-bottom: 10px;
   color: rgba(255, 255, 255, 0.78);
   text-decoration: none;
+`;
+
+const fadeInUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+// 💡 새로 추가: 애니메이션 래퍼 (이 컴포넌트로 요소들을 감싸줍니다)
+export const AnimatedBox = styled.div`
+  opacity: 0; // 초기 상태는 숨김
+
+  &.animate {
+    animation: ${fadeInUp} 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    /* delay prop을 받아서 순차적으로 나타나게 할 수 있습니다 */
+    animation-delay: ${({ delay }) => delay || '0s'};
+  }
 `;

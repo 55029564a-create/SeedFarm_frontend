@@ -6,7 +6,9 @@ import {
   SectionTitle,
   SectionDesc,
   theme,
+  AnimatedBox, // 💡 애니메이션 래퍼 추가
 } from '../styles/landingStyled';
+import { useScrollFadeIn } from '../hooks/useScrollFadeIn'; // 💡 커스텀 훅 추가
 
 const DashboardWrap = styled(Section)`
   color: white;
@@ -62,32 +64,42 @@ const Box = styled.div`
 `;
 
 const Dashboard = () => {
+  // 💡 스크롤 감지 훅 호출
+  const { ref: sectionRef, className: animateClass } = useScrollFadeIn();
+
   return (
     <DashboardWrap id="dashboard" bg="#0F172A">
-      <Container>
-        <SectionLabel light>DASHBOARD SECTION</SectionLabel>
-        <SectionTitle>AI 대시보드 미리보기</SectionTitle>
-        <SectionDesc light>
-          작물 생육 상태, 환경 데이터, 알림 정보를 한 화면에서 관리합니다.
-        </SectionDesc>
+      {/* 💡 Container에 ref를 달아 스크롤 트리거 영역으로 설정 */}
+      <Container ref={sectionRef}>
+        {/* 💡 텍스트 영역이 먼저 나타납니다 (delay 0s) */}
+        <AnimatedBox className={animateClass} delay="0s">
+          <SectionLabel light>DASHBOARD SECTION</SectionLabel>
+          <SectionTitle>AI 대시보드 미리보기</SectionTitle>
+          <SectionDesc light>
+            작물 생육 상태, 환경 데이터, 알림 정보를 한 화면에서 관리합니다.
+          </SectionDesc>
+        </AnimatedBox>
 
-        <DashboardMock>
-          <Sidebar />
-          <Content>
-            <Row3>
-              <Box />
-              <Box />
-              <Box />
-            </Row3>
+        {/* 💡 대시보드 Mock UI 전체가 이어서 나타납니다 (delay 0.2s) */}
+        <AnimatedBox className={animateClass} delay="0.2s">
+          <DashboardMock>
+            <Sidebar />
+            <Content>
+              <Row3>
+                <Box />
+                <Box />
+                <Box />
+              </Row3>
 
-            <Box h="220px" />
+              <Box h="220px" />
 
-            <Row2>
-              <Box h="140px" />
-              <Box h="140px" />
-            </Row2>
-          </Content>
-        </DashboardMock>
+              <Row2>
+                <Box h="140px" />
+                <Box h="140px" />
+              </Row2>
+            </Content>
+          </DashboardMock>
+        </AnimatedBox>
       </Container>
     </DashboardWrap>
   );

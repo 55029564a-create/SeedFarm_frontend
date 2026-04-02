@@ -66,10 +66,14 @@ const HeaderButton = styled.a`
   }
 `;
 
+const HeaderContainer = styled(Container)`
+  height: 100%;
+`;
+
 const Header = () => {
   return (
     <HeaderWrap>
-      <Container>
+      <HeaderContainer>
         <HeaderInner>
           <Logo>Seed Farm</Logo>
 
@@ -84,7 +88,7 @@ const Header = () => {
             <PrimaryButton>무료 상담</PrimaryButton>
           </HeaderButton>
         </HeaderInner>
-      </Container>
+      </HeaderContainer>
     </HeaderWrap>
   );
 };

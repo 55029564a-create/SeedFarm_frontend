@@ -7,7 +7,9 @@ import {
   SecondaryButton,
   MockBox,
   theme,
+  AnimatedBox, // 💡 애니메이션 래퍼 추가
 } from '../styles/landingStyled';
+import { useScrollFadeIn } from '../hooks/useScrollFadeIn'; // 💡 커스텀 훅 추가
 
 const HeroSection = styled(Section)`
   min-height: 100vh;
@@ -127,31 +129,46 @@ const MockDevice = styled.div`
 `;
 
 const Hero = () => {
+  // 💡 훅을 호출하여 ref와 클래스명을 받아옵니다.
+  const { ref: sectionRef, className: animateClass } = useScrollFadeIn();
+
   return (
     <HeroSection id="hero">
       <Container>
-        <HeroInner>
+        {/* 💡 애니메이션 트리거 기준점이 될 래퍼에 ref 연결 */}
+        <HeroInner ref={sectionRef}>
           <HeroText>
-            <SectionLabel>HERO SECTION</SectionLabel>
-            <h1>AI가 농장을 관리합니다</h1>
-            <p>
-              Seed Farm은 AI와 스마트팜 기술을 결합해 수확량은 높이고 운영
-              비용은 줄이는 농장 관리 솔루션입니다.
-            </p>
+            {/* 💡 요소들을 AnimatedBox로 감싸고 딜레이(delay)를 주어 순차적으로 등장하게 합니다 */}
+            <AnimatedBox className={animateClass} delay="0s">
+              <SectionLabel>HERO SECTION</SectionLabel>
+              <h1>AI가 농장을 관리합니다</h1>
+            </AnimatedBox>
 
-            <HeroButtons>
-              <PrimaryButton>무료 상담 받기</PrimaryButton>
-              <SecondaryButton>데모 보기</SecondaryButton>
-            </HeroButtons>
+            <AnimatedBox className={animateClass} delay="0.1s">
+              <p>
+                Seed Farm은 AI와 스마트팜 기술을 결합해 수확량은 높이고 운영
+                비용은 줄이는 농장 관리 솔루션입니다.
+              </p>
+            </AnimatedBox>
+
+            <AnimatedBox className={animateClass} delay="0.2s">
+              <HeroButtons>
+                <PrimaryButton>무료 상담 받기</PrimaryButton>
+                <SecondaryButton>데모 보기</SecondaryButton>
+              </HeroButtons>
+            </AnimatedBox>
           </HeroText>
 
-          <LargeMock>
-            <MockScreen>
-              <MockChart />
-              <MockLines />
-            </MockScreen>
-            <MockDevice />
-          </LargeMock>
+          {/* 💡 우측 Mock 이미지 영역은 제일 마지막에 등장 */}
+          <AnimatedBox className={animateClass} delay="0.3s">
+            <LargeMock>
+              <MockScreen>
+                <MockChart />
+                <MockLines />
+              </MockScreen>
+              <MockDevice />
+            </LargeMock>
+          </AnimatedBox>
         </HeroInner>
       </Container>
     </HeroSection>
