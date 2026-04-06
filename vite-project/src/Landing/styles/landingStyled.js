@@ -38,6 +38,13 @@ export const PageWrapper = styled.div`
       transparent 240px
     ),
     ${theme.colors.light};
+
+  user-select: none;
+
+  img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
 `;
 
 export const Container = styled.div`
