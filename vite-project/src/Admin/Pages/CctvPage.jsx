@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import Sidebar from '../Components/Sidebar';
-import {
-  PageContainer,
-  MainWrapper,
-  TopHeader,
-  HeaderBtn,
-  BaseCard,
-  CardTitle,
-} from './Styles/AdminShared';
+import { BaseCard, CardTitle } from './Styles/AdminShared';
 
 const CctvPage = () => {
   // 예시 데이터: 구역 리스트
@@ -23,107 +15,93 @@ const CctvPage = () => {
   const [activeSector, setActiveSector] = useState(sectors[0].id);
 
   return (
-    <PageContainer>
-      {/* 1. 사이드바 컴포넌트 (딱 한 줄로 끝!) */}
-      <Sidebar activeMenu="CCTV" />
+    // 🚨 여기서부터 시작! (AdminLayout이 껍데기를 담당하므로 빈 태그로 감싸줍니다)
+    <>
+      {/* 3단 분할 그리드: 좌(리스트) / 중(카메라) / 우(요약) */}
+      <ContentGrid>
+        {/* [1열] 좌측: 구역(Sector) 선택 리스트 */}
+        <LeftColumn>
+          <BaseCard style={{ flex: 1, padding: '1.25em 0.9em' }}>
+            <CardTitle style={{ paddingLeft: '0.6em' }}>
+              Select Sector
+            </CardTitle>
+            <SectorList>
+              {sectors.map((sector) => (
+                <SectorItem
+                  key={sector.id}
+                  className={activeSector === sector.id ? 'active' : ''}
+                  onClick={() => setActiveSector(sector.id)}
+                >
+                  <div className="info">
+                    <span className="name">{sector.name}</span>
+                    <span
+                      className={`status-dot ${sector.status.toLowerCase()}`}
+                    ></span>
+                  </div>
+                </SectorItem>
+              ))}
+            </SectorList>
+          </BaseCard>
+        </LeftColumn>
 
-      {/* 2. 우측 메인 콘텐츠 영역 */}
-      <MainWrapper>
-        <TopHeader>
-          <div className="header-title">Live Monitoring & AI Analysis</div>
-          <div className="header-actions">
-            <HeaderBtn className="alert">🔔 Alert</HeaderBtn>
-          </div>
-        </TopHeader>
-
-        {/* 3단 분할 그리드: 좌(리스트) / 중(카메라) / 우(요약) */}
-        <ContentGrid>
-          {/* [1열] 좌측: 구역(Sector) 선택 리스트 */}
-          <LeftColumn>
-            <BaseCard style={{ flex: 1, padding: '1.25em 0.9em' }}>
-              <CardTitle style={{ paddingLeft: '0.6em' }}>
-                Select Sector
+        {/* [2열] 중앙: 대형 CCTV 화면 */}
+        <CenterColumn>
+          <CameraCard>
+            <div className="camera-header">
+              <CardTitle style={{ marginBottom: 0 }}>
+                Camera 01 - {sectors.find((s) => s.id === activeSector)?.name}
               </CardTitle>
-              <SectorList>
-                {sectors.map((sector) => (
-                  <SectorItem
-                    key={sector.id}
-                    className={activeSector === sector.id ? 'active' : ''}
-                    onClick={() => setActiveSector(sector.id)}
-                  >
-                    <div className="info">
-                      <span className="name">{sector.name}</span>
-                      <span
-                        className={`status-dot ${sector.status.toLowerCase()}`}
-                      ></span>
-                    </div>
-                  </SectorItem>
-                ))}
-              </SectorList>
-            </BaseCard>
-          </LeftColumn>
+              <div className="live-badge">🔴 LIVE</div>
+            </div>
+            <div className="video-placeholder">
+              <span className="icon">📹</span>
+              <p>Live Video Feed</p>
+            </div>
+            <CameraControls>
+              <button>Pan Left</button>
+              <button>Pan Right</button>
+              <button>Zoom In</button>
+              <button>Zoom Out</button>
+            </CameraControls>
+          </CameraCard>
+        </CenterColumn>
 
-          {/* [2열] 중앙: 대형 CCTV 화면 */}
-          <CenterColumn>
-            <CameraCard>
-              <div className="camera-header">
-                <CardTitle style={{ marginBottom: 0 }}>
-                  Camera 01 - {sectors.find((s) => s.id === activeSector)?.name}
-                </CardTitle>
-                <div className="live-badge">🔴 LIVE</div>
-              </div>
-              <div className="video-placeholder">
-                <span className="icon">📹</span>
-                <p>Live Video Feed</p>
-              </div>
-              <CameraControls>
-                <button>Pan Left</button>
-                <button>Pan Right</button>
-                <button>Zoom In</button>
-                <button>Zoom Out</button>
-              </CameraControls>
-            </CameraCard>
-          </CenterColumn>
+        {/* [3열] 우측: AI 분석 요약 (Summary) */}
+        <RightColumn>
+          <SummaryCard>
+            <CardTitle>AI Vision Summary</CardTitle>
+            <div className="image-snapshot">
+              <p>Last Snapshot (10 mins ago)</p>
+            </div>
 
-          {/* [3열] 우측: AI 분석 요약 (Summary) */}
-          <RightColumn>
-            <SummaryCard>
-              <CardTitle>AI Vision Summary</CardTitle>
-              <div className="image-snapshot">
-                <p>Last Snapshot (10 mins ago)</p>
+            <SummaryData>
+              <div className="data-row">
+                <span className="label">Plant Health</span>
+                <span className="value safe">94% (Good)</span>
               </div>
-
-              <SummaryData>
-                <div className="data-row">
-                  <span className="label">Plant Health</span>
-                  <span className="value safe">94% (Good)</span>
-                </div>
-                <div className="data-row">
-                  <span className="label">Pest Detection</span>
-                  <span className="value safe">None</span>
-                </div>
-                <div className="data-row">
-                  <span className="label">Growth Stage</span>
-                  <span className="value">Vegetative Day 14</span>
-                </div>
-                <div className="data-row">
-                  <span className="label">AI Suggestion</span>
-                  <span className="value highlight">
-                    Increase water slightly
-                  </span>
-                </div>
-              </SummaryData>
-            </SummaryCard>
-          </RightColumn>
-        </ContentGrid>
-      </MainWrapper>
-    </PageContainer>
+              <div className="data-row">
+                <span className="label">Pest Detection</span>
+                <span className="value safe">None</span>
+              </div>
+              <div className="data-row">
+                <span className="label">Growth Stage</span>
+                <span className="value">Vegetative Day 14</span>
+              </div>
+              <div className="data-row">
+                <span className="label">AI Suggestion</span>
+                <span className="value highlight">Increase water slightly</span>
+              </div>
+            </SummaryData>
+          </SummaryCard>
+        </RightColumn>
+      </ContentGrid>
+    </>
   );
 };
 
 export default CctvPage;
 
-// --- CCTV 페이지 전용 Styled Components (em 단위로 완벽 변환) ---
+// --- CCTV 페이지 전용 Styled Components (기존 코드와 동일) ---
 
 const ContentGrid = styled.div`
   flex: 1;
@@ -133,7 +111,6 @@ const ContentGrid = styled.div`
   min-height: 0;
 `;
 
-// --- [1열] 좌측: 리스트 ---
 const LeftColumn = styled.div`
   display: flex;
   flex-direction: column;
@@ -193,7 +170,6 @@ const SectorItem = styled.div`
   }
 `;
 
-// --- [2열] 중앙: 대형 카메라 ---
 const CenterColumn = styled.div`
   display: flex;
   flex-direction: column;
@@ -278,7 +254,6 @@ const CameraControls = styled.div`
   }
 `;
 
-// --- [3열] 우측: 요약 ---
 const RightColumn = styled.div`
   display: flex;
   flex-direction: column;

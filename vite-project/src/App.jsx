@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import styled from 'styled-components';
 import AdminPage from './Admin/Pages/AdminPage';
 import FieldPage from './Field/Pages/FieldPage';
@@ -8,15 +8,11 @@ import GlobalStyle from './GlobalStyle';
 import LoginPage from './Admin/Pages/LoginPage';
 import DashboardPage from './Admin/Pages/DashBoardPage';
 import CctvPage from './Admin/Pages/CctvPage';
+import DeviceControlPage from './Admin/Pages/DeviceControlPage';
+import DataAnalysisPage from './Admin/Pages/DataAnalysisPage';
 
-// 접속한 디바이스의 화면 크기를 기반으로 페이지 이동됨. 1024 이상 PC 이하 태블릿, 모바일 페이지로 이동
-// 페이지 다 만들고 주석 풀기.
-// import { useDevice } from './hooks/useDevice';
-// const DashboardRouter = () => {
-//   const { isDesktop } = useDevice();
-
-//   return isDesktop ? <AdminPage /> : <FieldPage />;
-// };
+// 🚨 경로 주의: App.jsx가 src 폴더에 있다면 아래 경로가 맞습니다.
+import AdminLayout from './Admin/Components/AdminLayout';
 
 function App() {
   return (
@@ -27,11 +23,15 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/Login" element={<LoginPage />} />
           <Route path="/Admin" element={<AdminPage />} />
-          <Route path="/DashBoard" element={<DashboardPage />} />
           <Route path="/Field" element={<FieldPage />} />
-          <Route path="/cctv" element={<CctvPage />} />
-          {/* 위에 동일. */}
-          {/* <Route path="/dashboard" element={<DashboardRouter />} /> */}
+
+          {/* 🚨 AdminLayout으로 껍데기 씌우기 */}
+          <Route element={<AdminLayout />}>
+            <Route path="/DashBoard" element={<DashboardPage />} />
+            <Route path="/cctv" element={<CctvPage />} />
+            <Route path="/Device" element={<DeviceControlPage />} />
+            <Route path="/Analysis" element={<DataAnalysisPage />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </>

@@ -1,165 +1,112 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
+import { PageContainer } from './Styles/AdminShared'; // 우리가 만든 67% 스케일링 껍데기
 
 const LoginPage = () => {
-    const [id, setId] = useState('');
-    const [pw, setPw] = useState('');
+  return (
+    // 🚨 PageContainer를 쓰되, 가운데 정렬을 덮어씌운 LoginWrapper를 사용합니다.
+    <LoginWrapper>
+      <LoginBox>
+        <div className="logo">🌱 Seed Farm</div>
+        <h2 className="title">Admin Login</h2>
 
-    const handleLogin = (e) => {
-        e.preventDefault();
-        console.log("Login Attempt:", id, pw);
-        // 나중에 여기에 라우팅 기능(navigate('/admin')) 추가할 예정
-    };
+        <InputGroup>
+          <label>ID</label>
+          <input type="text" placeholder="아이디를 입력하세요" />
+        </InputGroup>
 
-    return (
-        <LoginWrapper>
-            <LoginBox>
-                {/* 상단 포인트 띠 */}
-                <HeaderAccent />
+        <InputGroup>
+          <label>Password</label>
+          <input type="password" placeholder="비밀번호를 입력하세요" />
+        </InputGroup>
 
-                <ContentArea>
-                    <LogoArea>
-                        <IconWrapper>🌱</IconWrapper>
-                        <div className="title">Seed Farm</div>
-                        <p>Admin Portal Access</p>
-                    </LogoArea>
-
-                    <form onSubmit={handleLogin}>
-                        <InputGroup>
-                            <label>Administrator ID</label>
-                            <input
-                                type="text"
-                                placeholder="Enter your ID"
-                                value={id}
-                                onChange={(e) => setId(e.target.value)}
-                            />
-                        </InputGroup>
-
-                        <InputGroup>
-                            <label>Password</label>
-                            <input
-                                type="password"
-                                placeholder="Enter your password"
-                                value={pw}
-                                onChange={(e) => setPw(e.target.value)}
-                            />
-                        </InputGroup>
-
-                        <LoginButton type="submit">System Login</LoginButton>
-                    </form>
-                </ContentArea>
-            </LoginBox>
-        </LoginWrapper>
-    );
+        <LoginButton>로그인</LoginButton>
+      </LoginBox>
+    </LoginWrapper>
+  );
 };
 
 export default LoginPage;
 
 // --- Styled Components ---
 
-const LoginWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  /* 밋밋한 단색 대신 은은한 방사형 그라데이션 적용 */
-  background: radial-gradient(circle at 50% 0%, #ffffff 0%, var(--bg-color) 70%);
+// 💡 핵심: 기존 PageContainer의 속성을 그대로 물려받으면서 가운데 정렬만 추가!
+const LoginWrapper = styled(PageContainer)`
+  justify-content: center; /* 가로 중앙 정렬 */
+  align-items: center; /* 세로 중앙 정렬 */
 `;
 
 const LoginBox = styled.div`
-  width: 480px; /* 기존 400px에서 480px로 시원하게 확대! */
   background: var(--white);
-  border-radius: 20px; /* 모서리를 더 둥글게 해서 세련미 추가 */
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08); /* 그림자를 더 깊고 부드럽게 */
-  overflow: hidden; /* 상단 띠가 둥근 모서리를 안 벗어나게 함 */
-`;
+  padding: 3em 2.5em; /* 🚨 rem 대신 em을 써서 1280 화면에선 같이 줄어들게! */
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  width: 400px;
+  max-width: 90%; /* 화면이 너무 좁아질 때 방어 */
+  display: flex;
+  flex-direction: column;
 
-const HeaderAccent = styled.div`
-  height: 8px;
-  width: 100%;
-  /* 우리가 정한 다크그린 -> 틸 색상으로 이어지는 그라데이션 띠 */
-  background: linear-gradient(90deg, var(--point-green) 0%, var(--teal) 100%);
-`;
+  /* 1280 모니터(67% 축소)에 대응하는 반응형 크기 조절 */
+  @media (max-width: 1280px) {
+    width: 266px; /* 400px의 67% */
+  }
 
-const ContentArea = styled.div`
-  padding: 50px 40px; /* 박스가 커진 만큼 안쪽 여백도 시원하게 */
-`;
-
-const LogoArea = styled.div`
-  text-align: center;
-  margin-bottom: 40px;
+  .logo {
+    text-align: center;
+    font-size: 1.8em;
+    font-weight: 800;
+    color: var(--point-green);
+    margin-bottom: 0.5em;
+  }
 
   .title {
-    font-size: 2.2rem;
-    font-weight: 800;
+    text-align: center;
+    font-size: 1.2em;
     color: var(--primary-dark);
-    margin-bottom: 8px;
-    letter-spacing: -0.5px;
+    margin-bottom: 2em;
   }
-  p {
-    color: #64748B; /* 네이비보다 살짝 연한 슬레이트 색상 */
-    font-size: 0.95rem;
-    margin: 0;
-    font-weight: 500;
-  }
-`;
-
-const IconWrapper = styled.div`
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-  display: inline-block;
-  padding: 15px;
-  background-color: rgba(46, 125, 50, 0.05); /* 아이콘 배경에 아주 연한 초록색 깔기 */
-  border-radius: 50%;
 `;
 
 const InputGroup = styled.div`
   display: flex;
   flex-direction: column;
-  margin-bottom: 24px;
+  margin-bottom: 1.2em;
 
   label {
-    font-size: 0.85rem;
+    font-size: 0.9em;
     font-weight: 600;
-    margin-bottom: 8px;
     color: var(--primary-dark);
+    margin-bottom: 0.4em;
   }
 
   input {
-    width: 100%;
-    padding: 14px 16px; /* 입력칸 크기도 살짝 키움 */
-    border: 1px solid #E2E8F0;
+    padding: 0.8em 1em;
+    border: 1px solid #dde7df;
     border-radius: 10px;
-    background-color: #F8FAFC; /* 입력칸 배경을 살짝 어둡게 해서 입체감 부여 */
-    font-size: 1rem;
-    transition: all 0.2s ease;
+    font-size: 1em;
+    outline: none;
+    transition: border-color 0.2s;
 
     &:focus {
-      outline: none;
-      border-color: var(--teal);
-      background-color: var(--white);
-      box-shadow: 0 0 0 3px rgba(0, 194, 168, 0.15); /* 포커스 시 예쁜 테두리 빛망울 */
+      border-color: var(--point-green);
     }
   }
 `;
 
 const LoginButton = styled.button`
-  width: 100%;
-  padding: 16px;
-  margin-top: 10px;
-  background-color: var(--primary-dark);
+  margin-top: 1em;
+  padding: 1em;
+  background-color: var(--point-green);
   color: var(--white);
+  font-size: 1.1em;
+  font-weight: 700;
   border: none;
   border-radius: 10px;
-  font-size: 1.05rem;
-  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 6px rgba(15, 23, 42, 0.2);
-  transition: all 0.3s ease;
+  transition: all 0.2s;
 
   &:hover {
-    background-color: var(--point-green);
-    transform: translateY(-2px); /* 마우스 올렸을 때 살짝 위로 뜨는 애니메이션 */
-    box-shadow: 0 6px 12px rgba(46, 125, 50, 0.3);
+    background-color: #236026;
+    transform: translateY(-2px);
   }
 `;
