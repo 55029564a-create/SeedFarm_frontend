@@ -1,60 +1,206 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
+import { useOutletContext } from 'react-router-dom';
+// 🚨 BaseCard는 아래에서 대시보드 전용으로 덮어썼으므로 import에서 제거했습니다!
+import { CardTitle } from './Styles/AdminShared';
 
 const DashboardPage = () => {
-  // 🚨 1. 센서 데이터 6개 원상복구! 절대 안 빼먹었습니다.
-  const sensorData = [
-    { label: 'Temperature', value: '24.2°C', trend: '+0.5°C' },
-    { label: 'Humidity', value: '65%', trend: '-2%' },
-    { label: 'CO2 Level', value: '410 ppm', trend: '+15 ppm' },
-    { label: 'Radiation', value: '350 W/m²', trend: 'Sunny' },
-    { label: 'EC Supply', value: '1.2 dS/m', trend: 'Stable' },
-    { label: 'pH Supply', value: '5.8', trend: 'Stable' },
-  ];
+  const { selectedBranch } = useOutletContext();
 
-  // 🚨 2. 기기 작동 로그: 구역/섹션/기기명 디테일 추가
-  const deviceLogs = [
-    {
-      id: 1,
-      time: '14:10',
-      sector: 'Sector 01 (토마토)',
-      zone: 'Section A',
-      device: '💧 관수 펌프',
-      action: '가동 중',
-      desc: '설정값: Water 2.5L / EC 1.2 투입 완료',
-      status: 'active',
-    },
-    {
-      id: 2,
-      time: '13:30',
-      sector: 'Sector 02 (딸기)',
-      zone: 'Section C',
-      device: '💨 배기팬 2번',
-      action: 'Level 2 전개',
-      desc: '목표 온도 24°C 도달을 위한 강제 배기',
-      status: 'active',
-    },
-    {
-      id: 3,
-      time: '11:00',
-      sector: 'All Sectors (전체)',
-      zone: 'Roof',
-      device: '🌤️ 차광 스크린',
-      action: '50% 닫힘',
-      desc: '외부 일사량 400 W/m² 초과로 인한 연동 제어',
-      status: 'done',
-    },
-    {
-      id: 4,
-      time: '09:15',
-      sector: 'Sector 01 (토마토)',
-      zone: 'Section B',
-      device: '🪟 측창/천창',
-      action: '30% 개방',
-      desc: '내부 환기 및 습도 조절 스케줄 실행',
-      status: 'done',
-    },
-  ];
+  const dashboardData = useMemo(
+    () => ({
+      '천안 본점 (Cheonan Hub)': {
+        score: 96,
+        phase: '개화기 🌸',
+        status: '작물 활력도 최상 (전주 대비 2% ↗)',
+        sensors: [
+          {
+            label: 'Temperature',
+            value: 24.2,
+            unit: '°C',
+            trend: '+0.5',
+            status: 'stable',
+          },
+          {
+            label: 'Humidity',
+            value: 65,
+            unit: '%',
+            trend: '-2',
+            status: 'down',
+          },
+          {
+            label: 'CO2 Level',
+            value: 410,
+            unit: 'ppm',
+            trend: '+15',
+            status: 'up',
+          },
+          {
+            label: 'Radiation',
+            value: 350,
+            unit: 'W/m²',
+            trend: 'Sunny',
+            status: 'stable',
+          },
+          {
+            label: 'Soil EC',
+            value: 1.2,
+            unit: 'dS/m',
+            trend: 'Stable',
+            status: 'stable',
+          },
+          {
+            label: 'Soil pH',
+            value: 5.8,
+            unit: '',
+            trend: 'Stable',
+            status: 'stable',
+          },
+        ],
+        growth: {
+          height: '124.5 cm',
+          leafCount: '18 개',
+          leafLength: '15.2 cm',
+          leafWidth: '12.0 cm',
+        },
+        logs: [
+          {
+            id: 1,
+            time: '14:10',
+            sector: 'Sector 01',
+            zone: 'Section A',
+            device: '💧 관수 펌프',
+            action: '가동 중',
+            desc: '설정값: Water 2.5L / EC 1.2 투입 완료',
+            status: 'active',
+          },
+          {
+            id: 2,
+            time: '13:30',
+            sector: 'Sector 02',
+            zone: 'Section C',
+            device: '💨 배기팬 2번',
+            action: 'Level 2 전개',
+            desc: '목표 온도 24°C 도달을 위한 강제 배기',
+            status: 'active',
+          },
+          {
+            id: 3,
+            time: '11:00',
+            sector: 'All Sectors',
+            zone: 'Roof',
+            device: '🌤️ 차광 스크린',
+            action: '50% 닫힘',
+            desc: '외부 일사량 초과로 인한 연동 제어',
+            status: 'done',
+          },
+        ],
+      },
+      '천안 제2센터 (Cheonan B2)': {
+        score: 88,
+        phase: '정식기 🌱',
+        status: '초기 활착 진행 중 (안정)',
+        sensors: [
+          {
+            label: 'Temperature',
+            value: 22.5,
+            unit: '°C',
+            trend: '+0.2',
+            status: 'stable',
+          },
+          {
+            label: 'Humidity',
+            value: 70,
+            unit: '%',
+            trend: '+5',
+            status: 'up',
+          },
+          {
+            label: 'CO2 Level',
+            value: 450,
+            unit: 'ppm',
+            trend: '-10',
+            status: 'down',
+          },
+          {
+            label: 'Radiation',
+            value: 280,
+            unit: 'W/m²',
+            trend: 'Cloudy',
+            status: 'stable',
+          },
+          {
+            label: 'Soil EC',
+            value: 1.0,
+            unit: 'dS/m',
+            trend: 'Stable',
+            status: 'stable',
+          },
+          {
+            label: 'Soil pH',
+            value: 6.0,
+            unit: '',
+            trend: 'Stable',
+            status: 'stable',
+          },
+        ],
+        growth: {
+          height: '45.0 cm',
+          leafCount: '8 개',
+          leafLength: '8.5 cm',
+          leafWidth: '6.0 cm',
+        },
+        logs: [
+          {
+            id: 1,
+            time: '14:15',
+            sector: 'Sector 01',
+            zone: 'Section B',
+            device: '🌡️ 온풍기',
+            action: '가동 대기',
+            desc: '야간 목표 온도 18°C 설정 완료',
+            status: 'done',
+          },
+          {
+            id: 2,
+            time: '12:00',
+            sector: 'Sector 03',
+            zone: 'Nursery',
+            device: '💡 LED 보광등',
+            action: '점등',
+            desc: '일조량 부족 감지 -> 주간 모드 전환',
+            status: 'active',
+          },
+        ],
+      },
+    }),
+    [],
+  );
+
+  const currentData =
+    dashboardData[selectedBranch] || dashboardData['천안 본점 (Cheonan Hub)'];
+  const [liveSensors, setLiveSensors] = useState(currentData.sensors);
+
+  useEffect(() => {
+    setLiveSensors(currentData.sensors);
+
+    const interval = setInterval(() => {
+      setLiveSensors((prev) =>
+        prev.map((s) => {
+          if (s.label === 'Temperature' || s.label === 'Humidity') {
+            const fluctuate = Math.random() * 0.2 - 0.1;
+            return {
+              ...s,
+              value: (parseFloat(s.value) + fluctuate).toFixed(1),
+            };
+          }
+          return s;
+        }),
+      );
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [selectedBranch, currentData]);
 
   const aiLogs = [
     {
@@ -71,29 +217,24 @@ const DashboardPage = () => {
     },
   ];
 
-  const growthData = {
-    height: '124.5 cm',
-    leafCount: '18 개',
-    leafLength: '15.2 cm',
-    leafWidth: '12.0 cm',
-  };
-
   return (
     <ContentGrid>
-      {/* 1열: 종합 요약 & 환경 센서 (6개) */}
       <LeftColumn>
         <FarmSummaryCard>
           <div className="header-row">
-            <CardTitle className="white-text">Farm Overview</CardTitle>
-            <span className="optimal-badge">Phase: 개화기 🌸</span>
+            <div>
+              <CardTitle className="white-text">Farm Overview</CardTitle>
+              <div className="branch-name">{selectedBranch}</div>
+            </div>
+            <span className="optimal-badge">Phase: {currentData.phase}</span>
           </div>
           <div className="summary-body">
             <div className="main-info">
               <div className="score-area">
-                <span className="score">96</span>
+                <span className="score">{currentData.score}</span>
                 <span className="label">/ 100 pt</span>
               </div>
-              <p className="status-text">작물 활력도 최상 (전주 대비 2% ↗)</p>
+              <p className="status-text">{currentData.status}</p>
             </div>
             <div className="metrics-row">
               <div className="metric-box">
@@ -110,15 +251,21 @@ const DashboardPage = () => {
         </FarmSummaryCard>
 
         <SensorsGroupCard>
-          <CardTitle>Climate Sensors</CardTitle>
+          <CardTitle>Real-time Sensors</CardTitle>
           <SensorGrid>
-            {sensorData.map((sensor, index) => (
+            {liveSensors.map((sensor, index) => (
               <SensorItem key={index}>
                 <div className="label">{sensor.label}</div>
-                <div className="value">{sensor.value}</div>
-                <div
-                  className={`trend ${sensor.trend.includes('+') ? 'up' : sensor.trend.includes('-') ? 'down' : 'stable'}`}
-                >
+                <div className="value-row">
+                  <span className="value">{sensor.value}</span>
+                  <span className="unit">{sensor.unit}</span>
+                </div>
+                <div className={`trend ${sensor.status}`}>
+                  {sensor.status === 'up'
+                    ? '▲ '
+                    : sensor.status === 'down'
+                      ? '▼ '
+                      : ''}
                   {sensor.trend}
                 </div>
               </SensorItem>
@@ -127,7 +274,6 @@ const DashboardPage = () => {
         </SensorsGroupCard>
       </LeftColumn>
 
-      {/* 2열: 가운데 (크고 시원시원한 Device Logs) */}
       <MiddleColumn>
         <LogGroupCard>
           <div className="log-header">
@@ -135,7 +281,7 @@ const DashboardPage = () => {
             <span className="sub-badge system">System Auto</span>
           </div>
           <LogList>
-            {deviceLogs.map((log) => (
+            {currentData.logs.map((log) => (
               <DeviceLogItem key={log.id} className={log.status}>
                 <div className="log-top">
                   <div className="badges">
@@ -157,15 +303,16 @@ const DashboardPage = () => {
         </LogGroupCard>
       </MiddleColumn>
 
-      {/* 3열: CCTV -> 생육 데이터 -> AI Logs */}
       <RightColumn>
         <CameraCard>
           <div className="header-row">
-            <CardTitle>Live Camera</CardTitle>
-            <span className="cam-label">Cam 01</span>
+            <CardTitle>Live Feed</CardTitle>
+            <span className="cam-label">Cam 01 (Sector 01)</span>
           </div>
           <div className="placeholder-content">
-            <span className="icon">🎥</span> CCTV Feed
+            <div className="pulse-ring"></div>
+            <span className="icon">📹</span>
+            <span className="text">Connecting to Stream...</span>
           </div>
         </CameraCard>
 
@@ -173,20 +320,20 @@ const DashboardPage = () => {
           <CardTitle>Crop Status</CardTitle>
           <GrowthGrid>
             <div className="g-item">
-              <span className="l">초장</span>
-              <span className="v">{growthData.height}</span>
+              <span className="l">초장 (Height)</span>
+              <span className="v">{currentData.growth.height}</span>
             </div>
             <div className="g-item">
-              <span className="l">엽수</span>
-              <span className="v">{growthData.leafCount}</span>
+              <span className="l">엽수 (Leaves)</span>
+              <span className="v">{currentData.growth.leafCount}</span>
             </div>
             <div className="g-item">
-              <span className="l">엽장</span>
-              <span className="v">{growthData.leafLength}</span>
+              <span className="l">엽장 (Length)</span>
+              <span className="v">{currentData.growth.leafLength}</span>
             </div>
             <div className="g-item">
-              <span className="l">엽폭</span>
-              <span className="v">{growthData.leafWidth}</span>
+              <span className="l">엽폭 (Width)</span>
+              <span className="v">{currentData.growth.leafWidth}</span>
             </div>
           </GrowthGrid>
         </GrowthCard>
@@ -222,7 +369,7 @@ export default DashboardPage;
 
 const BaseCard = styled.div`
   background: #ffffff;
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 1.5em;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.02),
@@ -232,7 +379,8 @@ const BaseCard = styled.div`
   min-width: 0;
 `;
 
-const CardTitle = styled.h2`
+// 여기서 기존 CardTitle을 덮어씁니다 (디자인 통일)
+const CardTitleStyled = styled.h2`
   font-size: 1.1em;
   font-weight: 800;
   color: #0f172a;
@@ -243,6 +391,7 @@ const CardTitle = styled.h2`
   text-overflow: ellipsis;
   &.white-text {
     color: #ffffff;
+    margin-bottom: 0.2em;
   }
 `;
 
@@ -290,6 +439,11 @@ const FarmSummaryCard = styled(BaseCard)`
     justify-content: space-between;
     align-items: flex-start;
   }
+  .branch-name {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+  }
   .optimal-badge {
     background: rgba(255, 255, 255, 0.2);
     padding: 6px 12px;
@@ -311,9 +465,10 @@ const FarmSummaryCard = styled(BaseCard)`
       display: flex;
       align-items: baseline;
       .score {
-        font-size: 3rem;
+        font-size: 3.5rem;
         font-weight: 800;
         line-height: 1;
+        letter-spacing: -0.03em;
       }
       .label {
         font-size: 0.9rem;
@@ -378,15 +533,12 @@ const SensorsGroupCard = styled(BaseCard)`
   flex: 1.2;
   min-height: 0;
 `;
-
-/* 🚨 6개 센서 3x2 배열 복구 */
 const SensorGrid = styled.div`
   flex: 1;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1em;
 `;
-
 const SensorItem = styled.div`
   background-color: rgba(241, 245, 249, 0.6);
   border-radius: 16px;
@@ -396,25 +548,42 @@ const SensorItem = styled.div`
   justify-content: space-between;
   align-items: flex-start;
   min-width: 0;
+  transition: background 0.3s ease;
+  &:hover {
+    background-color: #f8fafc;
+  }
   .label {
-    font-size: 0.8em;
-    font-weight: 600;
+    font-size: 0.75em;
+    font-weight: 800;
     color: #64748b;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
-  .value {
-    font-size: 1.5em;
-    font-weight: 800;
-    color: #0f172a;
+  .value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
     margin-top: 0.2em;
-    letter-spacing: -0.02em;
+    .value {
+      font-size: 1.6em;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      transition: color 0.3s;
+    }
+    .unit {
+      font-size: 0.8em;
+      font-weight: 700;
+      color: #94a3b8;
+    }
   }
   .trend {
     font-size: 0.75em;
-    font-weight: 700;
+    font-weight: 800;
     margin-top: 1em;
     padding: 4px 10px;
     border-radius: 20px;
@@ -442,8 +611,6 @@ const MiddleColumn = styled.div`
   min-height: 0;
   min-width: 0;
 `;
-
-/* 🚨 가운데 열 꽉 채우는 Device Log 컴포넌트 */
 const LogGroupCard = styled(BaseCard)`
   flex: 1;
   min-height: 0;
@@ -458,7 +625,7 @@ const LogGroupCard = styled(BaseCard)`
   }
   .sub-badge {
     font-size: 0.7em;
-    font-weight: 700;
+    font-weight: 800;
     padding: 4px 10px;
     border-radius: 20px;
     &.system {
@@ -467,7 +634,6 @@ const LogGroupCard = styled(BaseCard)`
     }
   }
 `;
-
 const LogList = styled.div`
   display: flex;
   flex-direction: column;
@@ -477,17 +643,15 @@ const LogList = styled.div`
   overflow-y: auto;
   padding-right: 0.5em;
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
   }
   &::-webkit-scrollbar-thumb {
     background: #e2e8f0;
     border-radius: 4px;
   }
 `;
-
-/* 🚨 시원시원하고 디테일 빵빵하게 들어간 개별 Log 박스 */
 const DeviceLogItem = styled.div`
-  background: rgba(241, 245, 249, 0.6);
+  background: #f8fafc;
   border-radius: 16px;
   padding: 1.2em 1.5em;
   display: flex;
@@ -498,20 +662,18 @@ const DeviceLogItem = styled.div`
     transform 0.2s ease,
     background 0.2s ease;
   border-left: 4px solid transparent;
-
   &:hover {
     background: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     transform: translateY(-2px);
   }
-
   &.active {
     border-left-color: #10b981;
+    background: rgba(16, 185, 129, 0.03);
   }
   &.done {
     border-left-color: #94a3b8;
   }
-
   .log-top {
     display: flex;
     justify-content: space-between;
@@ -536,17 +698,16 @@ const DeviceLogItem = styled.div`
     }
     .time {
       font-size: 0.8em;
-      font-weight: 700;
+      font-weight: 800;
       color: #94a3b8;
     }
   }
-
   .log-mid {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     .device {
-      font-size: 1.2em;
+      font-size: 1.1em;
       font-weight: 800;
       color: #0f172a;
       white-space: nowrap;
@@ -566,11 +727,10 @@ const DeviceLogItem = styled.div`
       }
     }
   }
-
   .log-bot {
     .desc {
       font-size: 0.85em;
-      font-weight: 500;
+      font-weight: 600;
       color: #64748b;
       line-height: 1.4;
       display: block;
@@ -593,43 +753,74 @@ const RightColumn = styled.div`
 const CameraCard = styled(BaseCard)`
   flex: 1.2;
   min-height: 220px;
+  padding: 1.2em;
   .header-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    margin-bottom: 1em;
+    h2 {
+      margin-bottom: 0;
+    }
   }
   .cam-label {
-    font-size: 0.8em;
-    font-weight: 700;
+    font-size: 0.75em;
+    font-weight: 800;
     color: #475569;
-    background: rgba(241, 245, 249, 0.8);
+    background: #f1f5f9;
     padding: 4px 10px;
     border-radius: 8px;
     flex-shrink: 0;
   }
   .placeholder-content {
     flex: 1;
-    margin-top: 1em;
-    background: #1e293b;
+    background: #0f172a;
     border-radius: 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 600;
-    font-size: 1em;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
     .icon {
       font-size: 2.5em;
       margin-bottom: 8px;
+      z-index: 2;
+      opacity: 0.8;
+    }
+    .text {
+      font-size: 0.8em;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      z-index: 2;
+      opacity: 0.8;
+    }
+    .pulse-ring {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 2px solid #10b981;
+      animation: radar 2s infinite ease-out;
+    }
+  }
+  @keyframes radar {
+    0% {
+      transform: scale(0.5);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(2.5);
+      opacity: 0;
     }
   }
 `;
 
 const GrowthCard = styled(BaseCard)`
-  padding: 1.2em 1.5em;
+  padding: 1.2em;
 `;
-
 const GrowthGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -638,13 +829,17 @@ const GrowthGrid = styled.div`
     display: flex;
     flex-direction: column;
     gap: 0.2em;
+    background: #f8fafc;
+    padding: 10px;
+    border-radius: 12px;
     .l {
-      font-size: 0.75em;
-      font-weight: 600;
+      font-size: 0.7em;
+      font-weight: 800;
       color: #94a3b8;
+      text-transform: uppercase;
     }
     .v {
-      font-size: 1em;
+      font-size: 1.1em;
       font-weight: 800;
       color: #0f172a;
     }
@@ -652,8 +847,9 @@ const GrowthGrid = styled.div`
 `;
 
 const AILogGroupCard = styled(BaseCard)`
-  flex: 1;
+  flex: 1.2;
   min-height: 0;
+  padding: 1.2em;
   .log-header {
     display: flex;
     justify-content: space-between;
@@ -665,7 +861,7 @@ const AILogGroupCard = styled(BaseCard)`
   }
   .sub-badge {
     font-size: 0.7em;
-    font-weight: 700;
+    font-weight: 800;
     padding: 4px 10px;
     border-radius: 20px;
     &.ai {
@@ -674,7 +870,6 @@ const AILogGroupCard = styled(BaseCard)`
     }
   }
 `;
-
 const AILogList = styled.div`
   display: flex;
   flex-direction: column;
@@ -691,7 +886,6 @@ const AILogList = styled.div`
     border-radius: 4px;
   }
 `;
-
 const AILogItem = styled.div`
   display: flex;
   flex-direction: column;
@@ -703,12 +897,17 @@ const AILogItem = styled.div`
   &.action {
     background: rgba(16, 185, 129, 0.05);
     border-left-color: #10b981;
+    .badge {
+      color: #10b981;
+    }
   }
   &.warning {
     background: rgba(239, 68, 68, 0.05);
     border-left-color: #ef4444;
+    .badge {
+      color: #ef4444;
+    }
   }
-
   .top-row {
     display: flex;
     justify-content: space-between;
@@ -716,13 +915,15 @@ const AILogItem = styled.div`
     margin-bottom: 0.5em;
     .badge {
       font-size: 0.7em;
-      font-weight: 800;
-      color: #0f172a;
+      font-weight: 900;
+      background: #fff;
+      padding: 2px 6px;
+      border-radius: 4px;
     }
     .time {
       font-size: 0.75em;
       color: #94a3b8;
-      font-weight: 600;
+      font-weight: 800;
     }
   }
   .title {
@@ -738,5 +939,6 @@ const AILogItem = styled.div`
     font-size: 0.8em;
     color: #475569;
     line-height: 1.4;
+    font-weight: 600;
   }
 `;

@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-// 🚨 중복 선언 방지: 형님의 AdminShared에서 정확히 가져옵니다.
 import { BaseCard, CardTitle } from './Styles/AdminShared';
 
 const CctvPage = () => {
-  // 1. 농장 구역(Sector) 데이터
   const sectors = [
     { id: 'sec_1', name: 'Sector 01 (토마토 A동)' },
     { id: 'sec_2', name: 'Sector 02 (토마토 B동)' },
     { id: 'sec_3', name: 'Sector 03 (육묘장)' },
   ];
 
-  // 2. 구역별 세부 카메라(Section) 데이터
+  // 🚨 AI 잡다한 데이터 다 빼고 순수 카메라 메타데이터만 남김
   const cameras = [
     {
       id: 'c_1',
@@ -46,11 +44,10 @@ const CctvPage = () => {
     { id: 'c_6', sectorId: 'sec_3', name: '발아실 내부', status: 'Live' },
   ];
 
-  // 현재 열려있는 섹터와 선택된 카메라 상태 관리
   const [activeSector, setActiveSector] = useState(sectors[0].id);
   const [activeCam, setActiveCam] = useState(cameras[0]);
+  const [isCapturing, setIsCapturing] = useState(false);
 
-  // 섹터가 바뀔 때마다 해당 섹터의 첫 번째 카메라를 자동으로 메인 화면에 띄움
   useEffect(() => {
     const firstCamOfSector = cameras.find(
       (cam) => cam.sectorId === activeSector,
@@ -58,9 +55,19 @@ const CctvPage = () => {
     if (firstCamOfSector) setActiveCam(firstCamOfSector);
   }, [activeSector]);
 
+  // 🚨 캡처 액션: 사진만 딱 찍어서 image_data 테이블로 넘기는 용도
+  const handleCapture = () => {
+    setIsCapturing(true);
+    setTimeout(() => {
+      setIsCapturing(false);
+      alert(
+        `📸 [캡처 완료]\n- 현재 프레임이 image_data 테이블에 저장되었습니다.\n- AI 서버로 이미지 분석을 요청합니다.`,
+      );
+    }, 150); // 실제 카메라 셔터처럼 짧고 강렬하게 번쩍!
+  };
+
   return (
     <ContentGrid>
-      {/* [1열] 좌측: 섹터 및 세부 카메라 선택 네비게이션 */}
       <LeftColumn>
         <NavCard>
           <CardTitle>Camera List</CardTitle>
@@ -73,7 +80,6 @@ const CctvPage = () => {
 
               return (
                 <div key={sector.id} className="sector-group">
-                  {/* 섹터 (폴더 역할) */}
                   <div
                     className={`sector-header ${isActiveSector ? 'expanded' : ''}`}
                     onClick={() => setActiveSector(sector.id)}
@@ -81,8 +87,6 @@ const CctvPage = () => {
                     <span className="icon">{isActiveSector ? '📂' : '📁'}</span>
                     <span className="name">{sector.name}</span>
                   </div>
-
-                  {/* 세부 카메라 리스트 (선택된 섹터만 펼쳐짐) */}
                   {isActiveSector && (
                     <div className="cam-list">
                       {sectorCams.map((cam) => (
@@ -106,10 +110,8 @@ const CctvPage = () => {
         </NavCard>
       </LeftColumn>
 
-      {/* [2열] 우측: 초대형 카메라 화면 꽉 채우기 (AI, 생육 정보 싹 다 뺌) */}
       <MainCameraColumn>
         <CameraCard>
-          {/* 카메라 헤더 정보 */}
           <div className="camera-header">
             <div className="title-area">
               <CardTitle style={{ marginBottom: 0 }}>
@@ -126,8 +128,8 @@ const CctvPage = () => {
             </div>
           </div>
 
-          {/* 광활한 영상 영역 */}
-          <div className="camera-container">
+          <div className={`camera-container ${isCapturing ? 'capturing' : ''}`}>
+            {/* 배경 영상 플레이스홀더 */}
             <div className="video-placeholder">
               <span className="icon">
                 {activeCam.status === 'Live' ? '📹' : '📡'}
@@ -140,7 +142,6 @@ const CctvPage = () => {
             </div>
           </div>
 
-          {/* 하단 PTZ(Pan/Tilt/Zoom) 및 제어 버튼 */}
           <CameraControls>
             <div className="control-group">
               <button>◀ Pan Left</button>
@@ -150,7 +151,9 @@ const CctvPage = () => {
               <button>➕ Zoom In</button>
               <button>➖ Zoom Out</button>
             </div>
-            <button className="primary-btn">📸 Capture Frame</button>
+            <button className="primary-btn" onClick={handleCapture}>
+              📸 Capture Frame
+            </button>
           </CameraControls>
         </CameraCard>
       </MainCameraColumn>
@@ -160,12 +163,11 @@ const CctvPage = () => {
 
 export default CctvPage;
 
-// --- 🎨 하이엔드 벤토 + 초대형 모니터 스타일링 ---
+// --- 🎨 스타일링 ---
 
 const ContentGrid = styled.div`
   flex: 1;
   display: grid;
-  /* 🚨 좌측 네비게이션 1 : 우측 초대형 화면 3.5 비율 유지 */
   grid-template-columns: 1fr 3.5fr;
   gap: 1.5em;
   width: 100%;
@@ -175,7 +177,6 @@ const ContentGrid = styled.div`
     flex-direction: column;
   }
 `;
-
 const LeftColumn = styled.div`
   display: flex;
   flex-direction: column;
@@ -183,19 +184,12 @@ const LeftColumn = styled.div`
   min-height: 0;
   min-width: 0;
 `;
-
-/* 좌측 네비게이션 카드 */
 const NavCard = styled(BaseCard)`
   flex: 1;
   padding: 1.5em;
   display: flex;
   flex-direction: column;
-  /* AdminShared의 BaseCard 위에 고급스러운 투명 그림자만 추가 */
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.02),
-    0 10px 15px -3px rgba(0, 0, 0, 0.04);
 `;
-
 const NavContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -210,99 +204,88 @@ const NavContainer = styled.div`
     background: #e2e8f0;
     border-radius: 4px;
   }
-
   .sector-group {
     display: flex;
     flex-direction: column;
     gap: 0.4em;
-
-    /* 섹터 (폴더) 디자인 */
-    .sector-header {
-      display: flex;
-      align-items: center;
-      gap: 0.8em;
-      padding: 1em;
-      border-radius: 12px;
-      background: #f8fafc;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      .icon {
-        font-size: 1.1em;
-      }
+  }
+  .sector-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8em;
+    padding: 1em;
+    border-radius: 12px;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: 0.2s;
+    .icon {
+      font-size: 1.1em;
+    }
+    .name {
+      font-size: 0.95em;
+      font-weight: 800;
+      color: #475569;
+    }
+    &:hover {
+      background: #f1f5f9;
+    }
+    &.expanded {
+      background: #ffffff;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
       .name {
-        font-size: 0.95em;
-        font-weight: 800;
-        color: #475569;
-        transition: color 0.2s;
+        color: #0f172a;
       }
-
+    }
+  }
+  .cam-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
+    margin-left: 1em;
+    padding-left: 1em;
+    border-left: 2px solid #f1f5f9;
+    .cam-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8em 1em;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+      background: transparent;
+      .cam-name {
+        font-size: 0.85em;
+        font-weight: 600;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        &.live {
+          background-color: #10b981;
+          box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+        &.warning {
+          background-color: #f59e0b;
+          box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+        }
+      }
       &:hover {
-        background: #f1f5f9;
-      }
-      &.expanded {
-        background: #ffffff;
-        border: 1px solid rgba(226, 232, 240, 0.8);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-        .name {
+        background: #f8fafc;
+        .cam-name {
           color: #0f172a;
         }
       }
-    }
-
-    /* 세부 카메라 리스트 디자인 */
-    .cam-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.3em;
-      margin-left: 1em;
-      padding-left: 1em;
-      border-left: 2px solid #f1f5f9; /* 트리 구조 느낌을 주는 왼쪽 선 */
-
-      .cam-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.8em 1em;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        background: transparent;
-
+      &.active {
+        background: rgba(16, 185, 129, 0.08);
         .cam-name {
-          font-size: 0.85em;
-          font-weight: 600;
-          color: #64748b;
-          transition: color 0.2s;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .status-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          &.live {
-            background-color: #10b981;
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
-          }
-          &.warning {
-            background-color: #f59e0b;
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
-          }
-        }
-
-        &:hover {
-          background: #f8fafc;
-          .cam-name {
-            color: #0f172a;
-          }
-        }
-        &.active {
-          background: rgba(16, 185, 129, 0.08);
-          .cam-name {
-            color: #10b981;
-            font-weight: 800;
-          }
+          color: #10b981;
+          font-weight: 800;
         }
       }
     }
@@ -316,8 +299,6 @@ const MainCameraColumn = styled.div`
   min-height: 0;
   min-width: 0;
 `;
-
-/* 🚨 우측 초대형 카메라 카드 */
 const CameraCard = styled(BaseCard)`
   flex: 1;
   padding: 0;
@@ -326,16 +307,14 @@ const CameraCard = styled(BaseCard)`
   display: flex;
   flex-direction: column;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-
   .camera-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5em 2em;
+    padding: 1.2em 2em;
     background-color: #ffffff;
     z-index: 10;
     border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-
     .title-area {
       display: flex;
       align-items: baseline;
@@ -349,7 +328,6 @@ const CameraCard = styled(BaseCard)`
         border-radius: 6px;
       }
     }
-
     .live-badge {
       padding: 6px 14px;
       border-radius: 20px;
@@ -370,24 +348,20 @@ const CameraCard = styled(BaseCard)`
     }
   }
 
-  @keyframes pulseRed {
-    0% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.5;
-    }
-    100% {
-      opacity: 1;
-    }
-  }
-
-  /* 🚨 영상 영역: 남는 공간을 모두 차지하도록 flex: 1 설정 */
+  /* 🚨 캡처 이펙트 (번쩍!) */
   .camera-container {
     flex: 1;
     position: relative;
     display: flex;
-    background: #080c14; /* 딥 블랙 톤으로 몰입감 극대화 */
+    background: #080c14;
+    overflow: hidden;
+    transition:
+      background-color 0.05s ease-out,
+      opacity 0.05s ease-out; /* 셔터처럼 빠르게 */
+    &.capturing {
+      background: #ffffff;
+      opacity: 0.9;
+    }
   }
 
   .video-placeholder {
@@ -411,15 +385,16 @@ const CameraCard = styled(BaseCard)`
     }
   }
 
-  /* 하단 카메라 조작 버튼부 */
-  .camera-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.2em 2em;
-    background-color: #ffffff;
-    z-index: 10;
-    border-top: 1px solid rgba(226, 232, 240, 0.6);
+  @keyframes pulseRed {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 1;
+    }
   }
 `;
 
@@ -431,12 +406,10 @@ const CameraControls = styled.div`
   background-color: #ffffff;
   z-index: 10;
   border-top: 1px solid rgba(226, 232, 240, 0.6);
-
   .control-group {
     display: flex;
     gap: 0.8em;
   }
-
   button {
     padding: 0.8em 1.2em;
     border-radius: 10px;
@@ -446,23 +419,23 @@ const CameraControls = styled.div`
     font-weight: 700;
     font-size: 0.9em;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: 0.2s;
     &:hover {
       background-color: #e2e8f0;
       color: #0f172a;
       transform: translateY(-2px);
     }
-    &:active {
-      transform: translateY(0);
-    }
   }
-
   .primary-btn {
-    background-color: rgba(16, 185, 129, 0.1);
-    color: #10b981;
+    background-color: #0f172a;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     &:hover {
-      background-color: rgba(16, 185, 129, 0.2);
-      color: #059669;
+      background-color: #1e293b;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
     }
   }
 `;
