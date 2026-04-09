@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import styled from 'styled-components';
 import AdminPage from './Admin/Pages/AdminPage';
-import FieldPage from './Field/Pages/FieldPage';
+// import FieldPage from './Field/Pages/FieldPage';
 import LandingPage from './Landing/Pages/LandingPage';
 import GlobalStyle from './GlobalStyle';
 import LoginPage from './Admin/Pages/LoginPage';
@@ -23,7 +23,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/Login" element={<LoginPage />} />
           <Route path="/Admin" element={<AdminPage />} />
-          <Route path="/Field" element={<FieldPage />} />
+          {/* <Route path="/Field" element={<FieldPage />} /> */}
 
           {/* 🚨 AdminLayout으로 껍데기 씌우기 */}
           <Route element={<AdminLayout />}>
