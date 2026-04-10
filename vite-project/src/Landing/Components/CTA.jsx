@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom'; // 🚨 라우팅을 위한 훅 추가
 import { Container } from '../styles/landingStyled';
 
 const CTASection = styled.section`
@@ -65,6 +66,11 @@ const PrimaryBtn = styled.button`
   border: none;
   font-size: 16px;
   cursor: pointer;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
 `;
 
 const SecondaryBtn = styled.button`
@@ -75,9 +81,17 @@ const SecondaryBtn = styled.button`
   border-radius: 999px;
   font-size: 14px;
   cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
 `;
 
 const CTA = () => {
+  const navigate = useNavigate(); // 🚨 페이지 이동을 위한 함수 호출
+
   return (
     <CTASection>
       <Container>
@@ -98,7 +112,10 @@ const CTA = () => {
 
           <ButtonWrap>
             <PrimaryBtn>무료 상담 시작하기</PrimaryBtn>
-            <SecondaryBtn>데모 먼저 보기</SecondaryBtn>
+            {/* 🚨 문구 변경 및 onClick 이벤트로 /login 페이지 이동 연결 */}
+            <SecondaryBtn onClick={() => navigate('/login')}>
+              시스템 체험하기 →
+            </SecondaryBtn>
           </ButtonWrap>
         </CTABox>
       </Container>

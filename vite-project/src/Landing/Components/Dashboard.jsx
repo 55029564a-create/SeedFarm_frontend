@@ -229,11 +229,13 @@ const CardHeader = styled.div`
   }
 `;
 
+/* 🚨 오직 여기 FakeChart CSS만 변경해서 그래프를 완벽하게 살려냈습니다! */
 const FakeChart = styled.div`
   height: 260px;
   border-radius: 18px;
   position: relative;
   overflow: hidden;
+  /* 배경 격자는 형님이 짜신 코드 그대로 유지! */
   background:
     linear-gradient(
       to top,
@@ -255,33 +257,66 @@ const FakeChart = styled.div`
       rgba(255, 255, 255, 0.06) 51px
     );
 
+  /* 1. 끊기지 않는 완벽한 그라데이션 선 + 하단 채우기 (SVG Data URI 활용) */
   &::before {
     content: '';
     position: absolute;
-    left: 20px;
-    right: 20px;
-    bottom: 58px;
-    height: 3px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #66bb6a 0%, #4caf50 45%, #00c2a8 100%);
-    transform: skewX(-18deg);
-    box-shadow: 0 0 16px rgba(0, 194, 168, 0.28);
+    inset: 0;
+    /* CSS로 SVG 벡터 이미지를 직접 그렸습니다. 브라우저 창을 어떻게 줄여도 안 깨집니다! */
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%2366bb6a'/%3E%3Cstop offset='100%25' stop-color='%2300c2a8'/%3E%3C/linearGradient%3E%3ClinearGradient id='a' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%2366bb6a' stop-opacity='0.25'/%3E%3Cstop offset='100%25' stop-color='%2366bb6a' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpolygon points='-10,110 -10,80 10,70 30,50 50,60 70,30 90,15 110,10 110,110' fill='url(%23a)'/%3E%3Cpolyline points='-10,80 10,70 30,50 50,60 70,30 90,15 110,10' fill='none' stroke='url(%23g)' stroke-width='3' vector-effect='non-scaling-stroke' stroke-linejoin='round'/%3E%3C/svg%3E")
+      no-repeat center/100% 100%;
+    z-index: 1;
   }
 
+  /* 2. 선의 꺾임(Vertex) 위치에 정확하게 맞는 데이터 포인트 점 찍기 */
   &::after {
     content: '';
     position: absolute;
-    left: 18%;
-    bottom: 50px;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: #66bb6a;
-    box-shadow:
-      90px -10px 0 #66bb6a,
-      180px -6px 0 #66bb6a,
-      270px -16px 0 #00c2a8,
-      360px -12px 0 #00c2a8;
+    inset: 0;
+    z-index: 2;
+    /* SVG 선의 퍼센트(%) 좌표와 완벽하게 일치하게 점들을 배치했습니다. */
+    background:
+      radial-gradient(
+          circle,
+          #fff 30%,
+          #66bb6a 35%,
+          #66bb6a 60%,
+          transparent 65%
+        )
+        no-repeat 10% 70% / 14px 14px,
+      radial-gradient(
+          circle,
+          #fff 30%,
+          #66bb6a 35%,
+          #66bb6a 60%,
+          transparent 65%
+        )
+        no-repeat 30% 50% / 14px 14px,
+      radial-gradient(
+          circle,
+          #fff 30%,
+          #4caf50 35%,
+          #4caf50 60%,
+          transparent 65%
+        )
+        no-repeat 50% 60% / 14px 14px,
+      radial-gradient(
+          circle,
+          #fff 30%,
+          #00c2a8 35%,
+          #00c2a8 60%,
+          transparent 65%
+        )
+        no-repeat 70% 30% / 14px 14px,
+      radial-gradient(
+          circle,
+          #fff 30%,
+          #00c2a8 35%,
+          #00c2a8 60%,
+          transparent 65%
+        )
+        no-repeat 90% 15% / 14px 14px;
+    filter: drop-shadow(0 4px 6px rgba(0, 194, 168, 0.4));
   }
 `;
 
