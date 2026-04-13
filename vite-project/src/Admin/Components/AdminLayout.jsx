@@ -17,10 +17,10 @@ const AdminLayout = () => {
 
   // 🚨 지역별 지하 스마트팜 지점(Branch) 데이터로 스케일 업!
   const branches = [
-    '천안 본점 (Cheonan Hub)',
+    '천안 제1센터 (Cheonan Hub)',
     '천안 제2센터 (Cheonan B2)',
-    '서울 강남센터 (Seoul Center)',
-    '통합 관제망 (All Locations)',
+    '천안 제3센터 (Seoul Center)',
+    '천안 제4센터 (All Locations)',
   ];
 
   const [selectedBranch, setSelectedBranch] = useState(branches[0]);
@@ -30,13 +30,13 @@ const AdminLayout = () => {
     {
       id: 1,
       type: 'warning',
-      text: '천안 본점 지하 2층 내부 온도 28°C 초과',
+      text: '천안 제1센터 지하 2층 내부 온도 28°C 초과',
       time: '10분 전',
     },
     {
       id: 2,
       type: 'action',
-      text: '서울 강남센터 제습 시스템 자동 가동',
+      text: '천안 제3센터 제습 시스템 자동 가동',
       time: '1시간 전',
     },
     {

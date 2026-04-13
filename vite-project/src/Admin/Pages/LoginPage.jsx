@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom'; // 🚨 1. 페이지 이동을 위한 훅 추가!
 import { PageContainer } from './Styles/AdminShared';
 
 const LoginPage = () => {
+  const navigate = useNavigate(); // 🚨 2. 네비게이트 함수 초기화!
+
   // 로그인 폼 상태 관리
   const [loginInputs, setLoginInputs] = useState({ id: '', password: '' });
   const [rememberMe, setRememberMe] = useState(false);
@@ -13,11 +16,24 @@ const LoginPage = () => {
     setLoginInputs((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 폼 제출 핸들러
+  // 🚨 3. 폼 제출 핸들러 (가짜 로그인 & 페이지 이동 로직 추가!)
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // 빈칸 방지
+    if (!loginInputs.id || !loginInputs.password) {
+      alert('아이디와 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+
     console.log('Login Attempt:', loginInputs, 'Remember ID:', rememberMe);
-    // API 호출 로직 추가 위치
+
+    // (임시) 프론트엔드 테스트용 가짜 토큰 저장
+    localStorage.setItem('adminToken', 'dummy-token-123');
+    if (rememberMe) localStorage.setItem('savedId', loginInputs.id);
+
+    // 대시보드로 강제 이동! (형님의 라우터 설정에 맞춰 '/dashboard'를 수정하세요)
+    navigate('/dashboard');
   };
 
   return (

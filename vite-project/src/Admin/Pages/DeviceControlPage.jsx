@@ -375,7 +375,7 @@ const DeviceControlPage = () => {
         <LeftColumn>
           <ControlGroupCard>
             <div className="header-flex">
-              <CardTitle style={{ marginBottom: 0 }}>
+              <CardTitle style={{ marginBottom: 0, marginTop: 0 }}>
                 Device Control Panel
               </CardTitle>
               <span className="info-badge">Expert Mode</span>
