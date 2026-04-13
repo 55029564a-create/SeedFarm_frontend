@@ -17,10 +17,10 @@ const AdminLayout = () => {
 
   // 🚨 지역별 지하 스마트팜 지점(Branch) 데이터로 스케일 업!
   const branches = [
-    '천안 제1센터 (Cheonan Hub)',
-    '천안 제2센터 (Cheonan B2)',
-    '천안 제3센터 (Seoul Center)',
-    '천안 제4센터 (All Locations)',
+    '천안 제1센터 (Cheonan)',
+    '천안 제2센터 (Cheonan)',
+    '천안 제3센터 (Cheonan)',
+    '천안 제4센터 (Cheonan)',
   ];
 
   const [selectedBranch, setSelectedBranch] = useState(branches[0]);
