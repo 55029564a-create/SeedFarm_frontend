@@ -394,7 +394,7 @@ const DeviceControlPage = () => {
                     <div className="card-top">
                       <span className="device-name">{device.name}</span>
                       <ToggleWrapper
-                        isOn={device.isAuto}
+                        $isOn={device.isAuto}
                         onClick={(e) => handleToggleAuto(device.id, e)}
                       >
                         <div className="toggle-bg">
@@ -852,7 +852,7 @@ const ToggleWrapper = styled.div`
     width: 100%;
     height: 100%;
     border-radius: 10px;
-    background: ${(p) => (p.isOn ? '#10B981' : '#CBD5E1')};
+    background: ${(p) => (p.$isOn ? '#10B981' : '#CBD5E1')};
     position: relative;
     transition: 0.3s;
   }
@@ -863,7 +863,7 @@ const ToggleWrapper = styled.div`
     border-radius: 50%;
     position: absolute;
     top: 3px;
-    left: ${(p) => (p.isOn ? '23px' : '3px')};
+    left: ${(p) => (p.$isOn ? '23px' : '3px')};
     transition: 0.3s;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }

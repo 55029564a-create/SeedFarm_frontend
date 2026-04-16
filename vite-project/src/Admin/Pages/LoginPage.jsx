@@ -32,8 +32,10 @@ const LoginPage = () => {
     localStorage.setItem('adminToken', 'dummy-token-123');
     if (rememberMe) localStorage.setItem('savedId', loginInputs.id);
 
-    // 대시보드로 강제 이동! (형님의 라우터 설정에 맞춰 '/dashboard'를 수정하세요)
-    navigate('/dashboard');
+    // 🔥 디바이스 기준 분기
+    const isField = window.innerWidth <= 1024;
+
+    navigate(isField ? '/field' : '/dashboard');
   };
 
   return (
@@ -109,37 +111,54 @@ export default LoginPage;
 
 // --- 스타일 컴포넌트 ---
 
-const LoginWrapper = styled(PageContainer)`
+const LoginWrapper = styled.div`
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
   justify-content: center;
   align-items: center;
+
   background: #f1f5f9;
   background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
   background-size: 24px 24px;
+
+  padding: 24px;
+
+  @media (max-width: 640px) {
+    padding: 16px;
+    align-items: center;
+  }
 `;
 
 const LoginBox = styled.div`
   background: #ffffff;
-  padding: 3em;
+  padding: 48px;
   border-radius: 24px;
   box-shadow:
     0 20px 40px -10px rgba(15, 23, 42, 0.1),
     0 0 0 1px rgba(226, 232, 240, 0.8);
-  width: 440px;
-  max-width: 90%;
+  width: min(440px, 100%);
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
 
-  @media (max-width: 1280px) {
-    width: 294px;
+  @media (max-width: 1024px) {
+    padding: 40px 32px;
+    border-radius: 22px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 28px 20px;
+    border-radius: 20px;
   }
 
   .logo-area {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 2.5em;
+    margin-bottom: 2.25em;
+
     .icon-wrapper {
       width: 4em;
       height: 4em;
@@ -151,17 +170,24 @@ const LoginBox = styled.div`
       margin-bottom: 1em;
       border: 1px solid #bbf7d0;
       box-shadow: 0 4px 10px rgba(16, 185, 129, 0.1);
+
       .icon {
         font-size: 2em;
       }
     }
+
     .brand {
       font-size: 1.8em;
       font-weight: 900;
       color: #0f172a;
       margin: 0 0 0.2em 0;
       letter-spacing: -0.03em;
+
+      @media (max-width: 640px) {
+        font-size: 1.55em;
+      }
     }
+
     .subtitle {
       font-size: 0.9em;
       font-weight: 700;
@@ -169,10 +195,15 @@ const LoginBox = styled.div`
       margin: 0;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      text-align: center;
+
+      @media (max-width: 640px) {
+        font-size: 0.78em;
+        line-height: 1.5;
+      }
     }
   }
 `;
-
 const FormArea = styled.form`
   display: flex;
   flex-direction: column;
@@ -237,6 +268,7 @@ const InputGroup = styled.div`
     position: relative;
     display: flex;
     align-items: center;
+
     .input-icon {
       position: absolute;
       left: 1em;
@@ -261,11 +293,17 @@ const InputGroup = styled.div`
         color: #94a3b8;
         font-weight: 600;
       }
+
       &:focus {
         background: #ffffff;
         border-color: #10b981;
         outline: none;
         box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+      }
+
+      @media (max-width: 640px) {
+        font-size: 16px;
+        padding: 0.95em 1em 0.95em 2.9em;
       }
     }
   }
@@ -294,13 +332,20 @@ const LoginButton = styled.button`
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px -5px rgba(16, 185, 129, 0.4);
+
     .arrow {
       transform: translateX(4px);
     }
   }
+
   &:active {
     transform: translateY(0);
     box-shadow: none;
+  }
+
+  @media (max-width: 640px) {
+    padding: 1em;
+    font-size: 0.95em;
   }
 `;
 

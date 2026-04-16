@@ -216,17 +216,25 @@ const Drawer = styled.aside`
   position: fixed;
   top: 0;
   left: 0;
-  width: 260px; /* 형님이 늘리신 260px 적용 */
+  width: 260px;
   max-width: 82%;
   height: 100vh;
   background: ${({ theme }) => theme.colors.white};
-  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.14);
+
+  /* 🔥 핵심 수정 */
+  box-shadow: ${({ $open }) =>
+    $open ? '10px 0 30px rgba(0, 0, 0, 0.14)' : 'none'};
+
   transform: ${({ $open }) => ($open ? 'translateX(0)' : 'translateX(-100%)')};
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s ease;
+
   z-index: 100;
   display: flex;
   flex-direction: column;
-  padding: 1.5em 1em; /* 모바일/태블릿 패딩 최적화 */
+  padding: 1.5em 1em;
   box-sizing: border-box;
 `;
 
