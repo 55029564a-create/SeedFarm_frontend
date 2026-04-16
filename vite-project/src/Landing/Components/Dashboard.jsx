@@ -5,8 +5,10 @@ import {
   SectionTitle,
   SectionDesc,
   AnimatedBox,
+  SectionLabel,
 } from '../styles/landingStyled';
 import { useScrollFadeIn } from '../../hooks/useScrollFadeIn';
+import { useState, useRef } from 'react';
 
 const sensorData = [
   {
@@ -108,13 +110,48 @@ const growthData = [
   { label: '엽폭 (Width)', value: '12.0 cm' },
 ];
 
+const showcaseCards = [
+  {
+    title: '실시간 센서 모니터링',
+    desc: '온도, 습도, CO₂, EC, pH 등 핵심 환경 데이터를 실시간으로 확인합니다.',
+    className: 'leftTop',
+    feature: 'sensors',
+  },
+  {
+    title: '비전 기반 생육 분석',
+    desc: '카메라를 통해 잎 상태와 생육 편차를 분석하고 이상 징후를 빠르게 파악합니다.',
+    className: 'leftBottom',
+    feature: 'vision',
+  },
+  {
+    title: '이상 알림 및 경고',
+    desc: '환경 변화와 생육 패턴을 바탕으로 위험 신호를 먼저 알려줍니다.',
+    className: 'rightTop',
+    feature: 'alerts',
+  },
+  {
+    title: '자동 제어 및 작업 로그',
+    desc: '관수, 환기, 차광 등 자동화 설비의 동작 이력을 한눈에 볼 수 있습니다.',
+    className: 'rightMiddle',
+    feature: 'logs',
+  },
+  {
+    title: 'AI 운영 인사이트',
+    desc: '환경 데이터와 생육 상태를 종합해 운영 추천과 대응 방향을 제안합니다.',
+    className: 'rightBottom',
+    feature: 'ai',
+  },
+];
+
 const Dashboard = () => {
   const { ref: sectionRef, className: animateClass } = useScrollFadeIn();
+  const [activeFeature, setActiveFeature] = useState(null);
 
   return (
     <DashboardWrap id="dashboard">
       <Container ref={sectionRef}>
         <AnimatedBox className={animateClass} $delay="0s">
+          <SectionLabel>Dashboard Showcase</SectionLabel>
           <SectionTitle>AI 대시보드 미리보기</SectionTitle>
           <SectionDesc>
             실제 스마트팜 통합 관제 화면이 어떤 구조로 구성되는지 한눈에
@@ -123,159 +160,205 @@ const Dashboard = () => {
         </AnimatedBox>
 
         <AnimatedBox className={animateClass} $delay="0.2s">
-          <DashboardMock>
-            <ContentGrid>
-              <LeftColumn>
-                <FarmSummaryCard>
-                  <div className="header-row">
-                    <div>
-                      <WhiteCardTitle>Farm Overview</WhiteCardTitle>
-                      <div className="branch-name">천안 본점 (Cheonan Hub)</div>
-                    </div>
-                    <span className="optimal-badge">Phase: 개화기 🌸</span>
-                  </div>
+          <DashboardShowcase>
+            {showcaseCards.map((card) => (
+              <FloatingCard
+                key={card.title}
+                className={card.className}
+                $active={activeFeature === card.feature}
+                $hidden={
+                  activeFeature !== null && activeFeature !== card.feature
+                }
+                onMouseEnter={() => setActiveFeature(card.feature)}
+                onMouseLeave={() => setActiveFeature(null)}
+              >
+                <h4>{card.title}</h4>
+                <p>{card.desc}</p>
+              </FloatingCard>
+            ))}
 
-                  <div className="summary-body">
-                    <div className="main-info">
-                      <div className="score-area">
-                        <span className="score">96</span>
-                        <span className="label">/ 100 pt</span>
+            <DashboardMock>
+              <ContentGrid>
+                <LeftColumn>
+                  <FarmSummaryCard
+                    $active={activeFeature === 'alerts'}
+                    $dimmed={
+                      activeFeature !== null && activeFeature !== 'alerts'
+                    }
+                  >
+                    <div className="header-row">
+                      <div>
+                        <WhiteCardTitle>Farm Overview</WhiteCardTitle>
+                        <div className="branch-name">
+                          천안 본점 (Cheonan Hub)
+                        </div>
                       </div>
-                      <p className="status-text">
-                        작물 활력도 최상 (전주 대비 2% ↗)
-                      </p>
+                      <span className="optimal-badge">Phase: 개화기 🌸</span>
                     </div>
 
-                    <div className="metrics-row">
-                      <div className="metric-box">
-                        <span className="m-label">진행중인 이슈</span>
-                        <span className="m-value warning">
-                          ⚠️ 1 건 확인 요망
-                        </span>
+                    <div className="summary-body">
+                      <div className="main-info">
+                        <div className="score-area">
+                          <span className="score">96</span>
+                          <span className="label">/ 100 pt</span>
+                        </div>
+                        <p className="status-text">
+                          작물 활력도 최상 (전주 대비 2% ↗)
+                        </p>
                       </div>
 
-                      <div className="divider"></div>
-
-                      <div className="metric-box">
-                        <span className="m-label">다음 예정 작업</span>
-                        <span className="m-value normal">
-                          자동 방제 (14:00)
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </FarmSummaryCard>
-
-                <SensorsGroupCard>
-                  <CardTitle>Real-time Sensors</CardTitle>
-                  <SensorGrid>
-                    {sensorData.map((sensor, index) => (
-                      <SensorItem key={index}>
-                        <div className="label">{sensor.label}</div>
-
-                        <div className="value-row">
-                          <span className="value">{sensor.value}</span>
-                          <span className="unit">{sensor.unit}</span>
+                      <div className="metrics-row">
+                        <div className="metric-box">
+                          <span className="m-label">진행중인 이슈</span>
+                          <span className="m-value warning">
+                            ⚠️ 1 건 확인 요망
+                          </span>
                         </div>
 
-                        <div className={`trend ${sensor.status}`}>
-                          {sensor.status === 'up'
-                            ? '▲ '
-                            : sensor.status === 'down'
-                              ? '▼ '
-                              : ''}
-                          {sensor.trend}
+                        <div className="divider"></div>
+
+                        <div className="metric-box">
+                          <span className="m-label">다음 예정 작업</span>
+                          <span className="m-value normal">
+                            자동 방제 (14:00)
+                          </span>
                         </div>
-                      </SensorItem>
-                    ))}
-                  </SensorGrid>
-                </SensorsGroupCard>
-              </LeftColumn>
+                      </div>
+                    </div>
+                  </FarmSummaryCard>
 
-              <MiddleColumn>
-                <LogGroupCard>
-                  <div className="log-header">
-                    <CardTitle>Device Activity Logs</CardTitle>
-                    <span className="sub-badge system">System Auto</span>
-                  </div>
+                  <SensorsGroupCard
+                    $active={activeFeature === 'sensors'}
+                    $dimmed={
+                      activeFeature !== null && activeFeature !== 'sensors'
+                    }
+                  >
+                    <CardTitle>Real-time Sensors</CardTitle>
+                    <SensorGrid>
+                      {sensorData.map((sensor, index) => (
+                        <SensorItem key={index}>
+                          <div className="label">{sensor.label}</div>
 
-                  <LogList>
-                    {deviceLogs.map((log) => (
-                      <DeviceLogItem key={log.id} className={log.status}>
-                        <div className="log-top">
-                          <div className="badges">
-                            <span className="sector-badge">{log.sector}</span>
-                            <span className="zone-badge">{log.zone}</span>
+                          <div className="value-row">
+                            <span className="value">{sensor.value}</span>
+                            <span className="unit">{sensor.unit}</span>
                           </div>
-                          <span className="time">{log.time}</span>
+
+                          <div className={`trend ${sensor.status}`}>
+                            {sensor.status === 'up'
+                              ? '▲ '
+                              : sensor.status === 'down'
+                                ? '▼ '
+                                : ''}
+                            {sensor.trend}
+                          </div>
+                        </SensorItem>
+                      ))}
+                    </SensorGrid>
+                  </SensorsGroupCard>
+                </LeftColumn>
+
+                <MiddleColumn>
+                  <LogGroupCard
+                    $active={activeFeature === 'logs'}
+                    $dimmed={activeFeature !== null && activeFeature !== 'logs'}
+                  >
+                    <div className="log-header">
+                      <CardTitle>Device Activity Logs</CardTitle>
+                      <span className="sub-badge system">System Auto</span>
+                    </div>
+
+                    <LogList>
+                      {deviceLogs.map((log) => (
+                        <DeviceLogItem key={log.id} className={log.status}>
+                          <div className="log-top">
+                            <div className="badges">
+                              <span className="sector-badge">{log.sector}</span>
+                              <span className="zone-badge">{log.zone}</span>
+                            </div>
+                            <span className="time">{log.time}</span>
+                          </div>
+
+                          <div className="log-mid">
+                            <span className="device">{log.device}</span>
+                            <span className={`action ${log.status}`}>
+                              {log.action}
+                            </span>
+                          </div>
+
+                          <div className="log-bot">
+                            <span className="desc">{log.desc}</span>
+                          </div>
+                        </DeviceLogItem>
+                      ))}
+                    </LogList>
+                  </LogGroupCard>
+                </MiddleColumn>
+
+                <RightColumn>
+                  <CameraCard
+                    $active={activeFeature === 'vision'}
+                    $dimmed={
+                      activeFeature !== null && activeFeature !== 'vision'
+                    }
+                  >
+                    <div className="header-row">
+                      <CardTitle>Live Feed</CardTitle>
+                      <span className="cam-label">Cam 01 (Sector 01)</span>
+                    </div>
+
+                    <div className="placeholder-content">
+                      <div className="pulse-ring"></div>
+                      <span className="icon">📹</span>
+                      <span className="text">Connecting to Stream...</span>
+                    </div>
+                  </CameraCard>
+
+                  <GrowthCard
+                    $active={activeFeature === 'vision'}
+                    $dimmed={
+                      activeFeature !== null && activeFeature !== 'vision'
+                    }
+                  >
+                    <CardTitle>Crop Status</CardTitle>
+                    <GrowthGrid>
+                      {growthData.map((item, index) => (
+                        <div className="g-item" key={index}>
+                          <span className="l">{item.label}</span>
+                          <span className="v">{item.value}</span>
                         </div>
+                      ))}
+                    </GrowthGrid>
+                  </GrowthCard>
 
-                        <div className="log-mid">
-                          <span className="device">{log.device}</span>
-                          <span className={`action ${log.status}`}>
-                            {log.action}
-                          </span>
-                        </div>
+                  <AILogGroupCard
+                    $active={activeFeature === 'ai'}
+                    $dimmed={activeFeature !== null && activeFeature !== 'ai'}
+                  >
+                    <div className="log-header">
+                      <CardTitle>AI Insights</CardTitle>
+                      <span className="sub-badge ai">AI Active</span>
+                    </div>
 
-                        <div className="log-bot">
-                          <span className="desc">{log.desc}</span>
-                        </div>
-                      </DeviceLogItem>
-                    ))}
-                  </LogList>
-                </LogGroupCard>
-              </MiddleColumn>
-
-              <RightColumn>
-                <CameraCard>
-                  <div className="header-row">
-                    <CardTitle>Live Feed</CardTitle>
-                    <span className="cam-label">Cam 01 (Sector 01)</span>
-                  </div>
-
-                  <div className="placeholder-content">
-                    <div className="pulse-ring"></div>
-                    <span className="icon">📹</span>
-                    <span className="text">Connecting to Stream...</span>
-                  </div>
-                </CameraCard>
-
-                <GrowthCard>
-                  <CardTitle>Crop Status</CardTitle>
-                  <GrowthGrid>
-                    {growthData.map((item, index) => (
-                      <div className="g-item" key={index}>
-                        <span className="l">{item.label}</span>
-                        <span className="v">{item.value}</span>
-                      </div>
-                    ))}
-                  </GrowthGrid>
-                </GrowthCard>
-
-                <AILogGroupCard>
-                  <div className="log-header">
-                    <CardTitle>AI Insights</CardTitle>
-                    <span className="sub-badge ai">AI Active</span>
-                  </div>
-
-                  <AILogList>
-                    {aiLogs.map((log, index) => (
-                      <AILogItem key={index} className={log.status}>
-                        <div className="top-row">
-                          <span className="badge">
-                            {log.status === 'action' ? '추천' : '경고'}
-                          </span>
-                          <span className="time">{log.time}</span>
-                        </div>
-                        <div className="title">{log.title}</div>
-                        <div className="desc">{log.desc}</div>
-                      </AILogItem>
-                    ))}
-                  </AILogList>
-                </AILogGroupCard>
-              </RightColumn>
-            </ContentGrid>
-          </DashboardMock>
+                    <AILogList>
+                      {aiLogs.map((log, index) => (
+                        <AILogItem key={index} className={log.status}>
+                          <div className="top-row">
+                            <span className="badge">
+                              {log.status === 'action' ? '추천' : '경고'}
+                            </span>
+                            <span className="time">{log.time}</span>
+                          </div>
+                          <div className="title">{log.title}</div>
+                          <div className="desc">{log.desc}</div>
+                        </AILogItem>
+                      ))}
+                    </AILogList>
+                  </AILogGroupCard>
+                </RightColumn>
+              </ContentGrid>
+            </DashboardMock>
+          </DashboardShowcase>
         </AnimatedBox>
       </Container>
     </DashboardWrap>
@@ -288,6 +371,12 @@ const DashboardWrap = styled(Section)`
   color: #0f172a;
 `;
 
+const DashboardShowcase = styled.div`
+  position: relative;
+  margin-top: 8px;
+  padding-top: 34px;
+`;
+
 const DashboardMock = styled.div`
   margin-top: 8px;
   background: linear-gradient(180deg, #f8fafc 0%, #eef5f1 100%);
@@ -297,6 +386,7 @@ const DashboardMock = styled.div`
   box-shadow:
     0 10px 30px rgba(15, 23, 42, 0.06),
     0 24px 60px rgba(15, 23, 42, 0.08);
+  transition: box-shadow 0.28s ease;
 
   @media (max-width: 768px) {
     padding: 18px;
@@ -304,16 +394,109 @@ const DashboardMock = styled.div`
   }
 `;
 
+const FloatingCard = styled.div`
+  position: absolute;
+  z-index: ${({ $active }) => ($active ? 8 : 4)};
+  width: 280px;
+  min-height: 132px;
+  display: ${({ $hidden }) => ($hidden ? 'none' : 'block')};
+
+  background: rgba(255, 255, 255, 0.97);
+  border: ${({ $active }) =>
+    $active
+      ? '2px dashed rgba(16, 185, 129, 0.6)'
+      : '1px solid rgba(203, 213, 225, 0.85)'};
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: ${({ $active }) =>
+    $active
+      ? '0 18px 40px rgba(16, 185, 129, 0.16), 0 24px 50px rgba(15, 23, 42, 0.10)'
+      : '0 10px 25px rgba(15, 23, 42, 0.08), 0 24px 50px rgba(15, 23, 42, 0.08)'};
+
+  transform: ${({ $active }) => ($active ? 'translateY(-4px)' : 'none')};
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border 0.22s ease;
+
+  h4 {
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #475569;
+    margin: 0;
+  }
+
+  &.leftTop {
+    top: -16px;
+    left: -18px;
+  }
+
+  &.leftBottom {
+    top: 278px;
+    left: -36px;
+  }
+
+  &.rightTop {
+    top: -26px;
+    right: -8px;
+  }
+
+  &.rightMiddle {
+    top: 196px;
+    right: -34px;
+  }
+
+  &.rightBottom {
+    top: 396px;
+    right: 6px;
+  }
+
+  @media (max-width: 1280px) {
+    position: static;
+    width: 100%;
+    min-height: auto;
+    display: block;
+    margin-bottom: 16px;
+  }
+`;
+
 const BaseCard = styled.div`
   background: #ffffff;
   border-radius: 20px;
   padding: 1.5em;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.02),
-    0 10px 15px -3px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   min-width: 0;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+
+  outline: ${({ $active }) =>
+    $active ? '2px dashed rgba(16, 185, 129, 0.7)' : 'none'};
+  outline-offset: 4px;
+
+  transition:
+    opacity 0.28s ease,
+    filter 0.28s ease,
+    transform 0.28s ease,
+    box-shadow 0.28s ease,
+    outline 0.28s ease;
+
+  opacity: ${({ $dimmed }) => ($dimmed ? 0.28 : 1)};
+  filter: ${({ $dimmed }) =>
+    $dimmed ? 'grayscale(0.18) brightness(0.94)' : 'none'};
+  transform: ${({ $active }) => ($active ? 'translateY(-4px)' : 'none')};
+
+  box-shadow: ${({ $active }) =>
+    $active
+      ? '0 12px 28px rgba(16, 185, 129, 0.16), 0 18px 40px rgba(15, 23, 42, 0.08)'
+      : '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 10px 15px -3px rgba(0, 0, 0, 0.04)'};
 `;
 
 const CardTitle = styled.h3`
