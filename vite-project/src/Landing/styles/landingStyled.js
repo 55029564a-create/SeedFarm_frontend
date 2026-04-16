@@ -154,16 +154,16 @@ export const SecondaryButton = styled.button`
 export const CardGrid = styled.div`
   display: grid;
   gap: 24px;
-  grid-template-columns: ${({ columns }) =>
-    columns === 4
+  grid-template-columns: ${({ $columns }) =>
+    $columns === 4
       ? 'repeat(4, 1fr)'
-      : columns === 3
+      : $columns === 3
         ? 'repeat(3, 1fr)'
         : 'repeat(2, 1fr)'};
 
   @media (max-width: 1024px) {
-    grid-template-columns: ${({ columns }) =>
-      columns === 4 ? 'repeat(2, 1fr)' : '1fr'};
+    grid-template-columns: ${({ $columns }) =>
+      $columns === 4 ? 'repeat(2, 1fr)' : '1fr'};
   }
 
   @media (max-width: 640px) {

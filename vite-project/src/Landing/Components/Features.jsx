@@ -51,7 +51,7 @@ const Features = () => {
   const { ref: sectionRef, className: sectionClass } = useScrollFadeIn();
 
   return (
-    <Section id="features" bg="#FFFFFF">
+    <Section id="features" $bg="#FFFFFF">
       <Container>
         {/* 💡 타이틀 영역 애니메이션 적용 */}
         <AnimatedBox ref={sectionRef} className={sectionClass}>
@@ -62,7 +62,7 @@ const Features = () => {
           </SectionDesc>
         </AnimatedBox>
 
-        <CardGrid columns={4}>
+        <CardGrid $columns={4}>
           {data.map((item, index) => {
             // 💡 맵 안에서 각각의 카드에 훅을 따로 걸어주거나,
             // 딜레이를 줘서 순차적으로 나오게 할 수 있습니다. (여기서는 간단하게 전체 리스트에 딜레이 적용)
@@ -70,7 +70,7 @@ const Features = () => {
               <AnimatedBox
                 key={item.title}
                 className={sectionClass} // 부모가 보일 때 같이 애니메이션 시작
-                delay={`${index * 0.1}s`} // 💡 0s, 0.1s, 0.2s... 순으로 차례대로 등장!
+                $delay={`${index * 0.1}s`} // 💡 0s, 0.1s, 0.2s... 순으로 차례대로 등장!
               >
                 <FeatureCard>
                   <IconCircle>●</IconCircle>

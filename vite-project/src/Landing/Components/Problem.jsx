@@ -55,11 +55,11 @@ const Problem = () => {
   const { ref: sectionRef, className: animateClass } = useScrollFadeIn();
 
   return (
-    <Section id="problem" bg="#FFFFFF">
+    <Section id="problem" $bg="#FFFFFF">
       {/* 💡 Container에 ref를 달아 이 영역이 보일 때 애니메이션이 시작되도록 합니다 */}
       <Container ref={sectionRef}>
         {/* 💡 텍스트 영역은 제일 먼저 나타나게 delay="0s" 적용 */}
-        <AnimatedBox className={animateClass} delay="0s">
+        <AnimatedBox className={animateClass} $delay="0s">
           <SectionTitle>기존 농업의 문제</SectionTitle>
           <SectionDesc>
             스마트한 분석과 자동화가 없으면 생산성과 안정성을 동시에 잡기
@@ -67,13 +67,13 @@ const Problem = () => {
           </SectionDesc>
         </AnimatedBox>
 
-        <CardGrid columns={4}>
+        <CardGrid $columns={4}>
           {data.map((item, index) => (
             // 💡 index를 활용해 0.1s, 0.2s, 0.3s, 0.4s 순으로 딜레이를 줍니다.
             <AnimatedBox
               key={item.title}
               className={animateClass}
-              delay={`${0.1 + index * 0.1}s`}
+              $delay={`${0.1 + index * 0.1}s`}
               style={{
                 height: '100%',
               }} /* 💡 애니메이션 래퍼도 그리드 셀의 높이를 가득 채우도록 설정 */

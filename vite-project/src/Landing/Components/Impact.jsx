@@ -52,21 +52,21 @@ const Impact = () => {
   const isAnimated = animateClass === 'animate';
 
   return (
-    <Section id="impact" bg="#FFFFFF">
+    <Section id="impact" $bg="#FFFFFF">
       <Container ref={sectionRef}>
-        <AnimatedBox className={animateClass} delay="0s">
+        <AnimatedBox className={animateClass} $delay="0s">
           <SectionTitle>설치 농장의 성과</SectionTitle>
           <SectionDesc>
             스마트팜 AI 도입 후 기대할 수 있는 대표적인 운영 개선 지표입니다.
           </SectionDesc>
         </AnimatedBox>
 
-        <CardGrid columns={3}>
+        <CardGrid $columns={3}>
           {data.map((item, index) => (
             <AnimatedBox
               key={item.label}
               className={animateClass}
-              delay={`${0.1 + index * 0.1}s`}
+              $delay={`${0.1 + index * 0.1}s`}
             >
               <ImpactCard>
                 <h3>
