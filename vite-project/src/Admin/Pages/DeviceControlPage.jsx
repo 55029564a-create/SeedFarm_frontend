@@ -179,7 +179,6 @@ const DeviceControlPage = () => {
             </div>
 
             <DeviceGrid>
-<<<<<<< HEAD
               {currentDevices.map((device) => (
                 <DeviceCard
                   key={device.id}
@@ -198,81 +197,6 @@ const DeviceControlPage = () => {
                         alignItems: 'center',
                       }}
                     >
-=======
-              {currentDevices.map((device) => {
-                const isWarning =
-                  device.value < device.safeMin ||
-                  device.value > device.safeMax;
-                return (
-                  <DeviceCard
-                    key={device.id}
-                    onClick={() => handleSelectDevice(device)}
-                    className={selectedId === device.id ? 'selected' : ''}
-                  >
-                    <div className="card-top">
-                      <span className="device-name">{device.name}</span>
-                      <ToggleWrapper
-                        $isOn={device.isAuto}
-                        onClick={(e) => handleToggleAuto(device.id, e)}
-                      >
-                        <div className="toggle-bg">
-                          <div className="toggle-knob"></div>
-                        </div>
-                      </ToggleWrapper>
-                    </div>
-
-                    <MiniChartWrapper>
-                      <svg viewBox="0 0 100 30" preserveAspectRatio="none">
-                        <defs>
-                          <linearGradient
-                            id={`grad-${device.id}`}
-                            x1="0%"
-                            y1="0%"
-                            x2="0%"
-                            y2="100%"
-                          >
-                            <stop
-                              offset="0%"
-                              stopColor={isWarning ? '#EF4444' : '#10B981'}
-                              stopOpacity="0.3"
-                            />
-                            <stop
-                              offset="100%"
-                              stopColor={isWarning ? '#EF4444' : '#10B981'}
-                              stopOpacity="0"
-                            />
-                          </linearGradient>
-                        </defs>
-                        <path
-                          d={`M 0,30 ${getTrendData.map((v, i) => `L ${i * 14.3},${30 - (v / 100) * 30}`).join(' ')} L 100,30 Z`}
-                          fill={`url(#grad-${device.id})`}
-                        />
-                        <polyline
-                          fill="none"
-                          stroke={isWarning ? '#EF4444' : '#10B981'}
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          points={getTrendData
-                            .map((v, i) => `${i * 14.3},${30 - (v / 100) * 30}`)
-                            .join(' ')}
-                        />
-                        {(() => {
-                          const lastVal = getTrendData[getTrendData.length - 1];
-                          return (
-                            <circle
-                              cx="100"
-                              cy={30 - (lastVal / 100) * 30}
-                              r="3"
-                              fill={isWarning ? '#EF4444' : '#10B981'}
-                            />
-                          );
-                        })()}
-                      </svg>
-                    </MiniChartWrapper>
-
-                    <div className="card-bottom">
->>>>>>> e39c9cef2216581ecee4ce46559c03168e9ccb55
                       <span
                         className={`status-tag ${device.isAuto ? 'auto' : 'manual'}`}
                       >
