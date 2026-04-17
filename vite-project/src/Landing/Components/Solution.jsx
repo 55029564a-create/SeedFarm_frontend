@@ -57,12 +57,12 @@ const Solution = () => {
   const { ref: sectionRef, className: animateClass } = useScrollFadeIn();
 
   return (
-    <Section id="solution" bg="#F8FBF8">
+    <Section id="solution" $bg="#F8FBF8">
       <Container>
         {/* 💡 양쪽 요소를 감싸는 SolutionInner에 ref를 달아 애니메이션 시작점을 잡습니다 */}
         <SolutionInner ref={sectionRef}>
           {/* 💡 좌측 Mock 이미지 영역: 가장 먼저 등장 (delay 0s) */}
-          <AnimatedBox className={animateClass} delay="0s">
+          <AnimatedBox className={animateClass} $delay="0s">
             <MediumMock>
               <PlantMock>AI</PlantMock>
             </MediumMock>
@@ -70,7 +70,7 @@ const Solution = () => {
 
           <div>
             {/* 💡 우측 텍스트 타이틀 영역: 이미지 다음 등장 (delay 0.1s) */}
-            <AnimatedBox className={animateClass} delay="0.1s">
+            <AnimatedBox className={animateClass} $delay="0.1s">
               <SectionTitle>AI 자동 관리 솔루션</SectionTitle>
               <SectionDesc>
                 카메라, 센서, AI 분석을 결합해 작물 상태를 빠르게 파악하고 더
@@ -79,7 +79,7 @@ const Solution = () => {
             </AnimatedBox>
 
             {/* 💡 우측 리스트 영역: 제일 마지막 등장 (delay 0.2s) */}
-            <AnimatedBox className={animateClass} delay="0.2s">
+            <AnimatedBox className={animateClass} $delay="0.2s">
               <BulletList>
                 <li>실시간 생육 상태 분석</li>
                 <li>환경 데이터 기반 자동 제어</li>

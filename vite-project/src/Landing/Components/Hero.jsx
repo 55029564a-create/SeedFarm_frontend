@@ -552,14 +552,14 @@ const Hero = () => {
       <Container>
         <HeroInner ref={sectionRef}>
           <HeroText>
-            <AnimatedBox className={animateClass} delay="0s">
+            <AnimatedBox className={animateClass} $delay="0s">
               <HeroBadge>
                 <Dot />
                 AI Smart Farm Automation
               </HeroBadge>
             </AnimatedBox>
 
-            <AnimatedBox className={animateClass} delay="0.1s">
+            <AnimatedBox className={animateClass} $delay="0.1s">
               <h1>
                 AI가 농장을 보고,
                 <br />
@@ -567,7 +567,7 @@ const Hero = () => {
               </h1>
             </AnimatedBox>
 
-            <AnimatedBox className={animateClass} delay="0.2s">
+            <AnimatedBox className={animateClass} $delay="0.2s">
               <p>
                 Seed Farm은 작물 이미지, 환경 센서, 분석 데이터를 하나로 연결해
                 이상 징후를 빠르게 감지하고 관수·환기·운영 판단까지 더 똑똑하게
@@ -575,14 +575,14 @@ const Hero = () => {
               </p>
             </AnimatedBox>
 
-            <AnimatedBox className={animateClass} delay="0.3s">
+            <AnimatedBox className={animateClass} $delay="0.3s">
               <HeroButtons>
                 <PrimaryButton>무료 상담 받기</PrimaryButton>
                 <SecondaryButton>데모 보기</SecondaryButton>
               </HeroButtons>
             </AnimatedBox>
 
-            <AnimatedBox className={animateClass} delay="0.4s">
+            <AnimatedBox className={animateClass} $delay="0.4s">
               <HeroStats>
                 <StatPill>
                   <strong>+30%</strong> 수확 효율 향상
@@ -597,7 +597,7 @@ const Hero = () => {
             </AnimatedBox>
           </HeroText>
 
-          <AnimatedBox className={animateClass} delay="0.35s">
+          <AnimatedBox className={animateClass} $delay="0.35s">
             <LargeMock>
               <DashboardShell>
                 <TopBar>

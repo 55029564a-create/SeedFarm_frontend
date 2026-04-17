@@ -15,42 +15,42 @@ const DashboardPage = () => {
         status: '작물 활력도 최상 (전주 대비 2% ↗)',
         sensors: [
           {
-            label: 'Temperature',
+            label: '온도',
             value: 24.2,
             unit: '°C',
             trend: '+0.5',
             status: 'stable',
           },
           {
-            label: 'Humidity',
+            label: '습도',
             value: 65,
             unit: '%',
             trend: '-2',
             status: 'down',
           },
           {
-            label: 'CO2 Level',
+            label: '이산화탄소 농도',
             value: 410,
             unit: 'ppm',
             trend: '+15',
             status: 'up',
           },
           {
-            label: 'Radiation',
+            label: 'LED 광량',
             value: 350,
-            unit: 'W/m²',
+            unit: 'μmol/m²/s',
             trend: 'Sunny',
             status: 'stable',
           },
           {
-            label: 'Soil EC',
+            label: '토양 EC',
             value: 1.2,
             unit: 'dS/m',
             trend: 'Stable',
             status: 'stable',
           },
           {
-            label: 'Soil pH',
+            label: '토양 pH',
             value: 5.8,
             unit: '',
             trend: 'Stable',
@@ -223,7 +223,7 @@ const DashboardPage = () => {
         <FarmSummaryCard>
           <div className="header-row">
             <div>
-              <CardTitle className="white-text">Farm Overview</CardTitle>
+              <CardTitle className="white-text">농장 현황</CardTitle>
               <div className="branch-name">{selectedBranch}</div>
             </div>
             <span className="optimal-badge">Phase: {currentData.phase}</span>
@@ -251,7 +251,7 @@ const DashboardPage = () => {
         </FarmSummaryCard>
 
         <SensorsGroupCard>
-          <CardTitle>Real-time Sensors</CardTitle>
+          <CardTitle>실시간 센서 데이터</CardTitle>
           <SensorGrid>
             {liveSensors.map((sensor, index) => (
               <SensorItem key={index}>

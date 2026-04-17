@@ -97,9 +97,9 @@ const UseCase = () => {
   const { ref: sectionRef, className: animateClass } = useScrollFadeIn();
 
   return (
-    <Section id="usecase" bg="#FFFFFF">
+    <Section id="usecase" $bg="#FFFFFF">
       <Container ref={sectionRef}>
-        <AnimatedBox className={animateClass} delay="0s">
+        <AnimatedBox className={animateClass} $delay="0s">
           <SectionTitle>이런 곳에 적용됩니다</SectionTitle>
           <SectionDesc>
             다양한 재배 환경에 맞춰 유연하게 적용할 수 있는 스마트팜
@@ -107,12 +107,12 @@ const UseCase = () => {
           </SectionDesc>
         </AnimatedBox>
 
-        <CardGrid columns={3}>
+        <CardGrid $columns={3}>
           {data.map((item, index) => (
             <AnimatedBox
               key={item.title}
               className={animateClass}
-              delay={`${0.1 + index * 0.1}s`}
+              $delay={`${0.1 + index * 0.1}s`}
               style={{ height: '100%' }}
             >
               <UseCaseCard>

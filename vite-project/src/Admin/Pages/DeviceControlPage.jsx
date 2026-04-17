@@ -179,6 +179,7 @@ const DeviceControlPage = () => {
             </div>
 
             <DeviceGrid>
+<<<<<<< HEAD
               {currentDevices.map((device) => (
                 <DeviceCard
                   key={device.id}
@@ -197,6 +198,81 @@ const DeviceControlPage = () => {
                         alignItems: 'center',
                       }}
                     >
+=======
+              {currentDevices.map((device) => {
+                const isWarning =
+                  device.value < device.safeMin ||
+                  device.value > device.safeMax;
+                return (
+                  <DeviceCard
+                    key={device.id}
+                    onClick={() => handleSelectDevice(device)}
+                    className={selectedId === device.id ? 'selected' : ''}
+                  >
+                    <div className="card-top">
+                      <span className="device-name">{device.name}</span>
+                      <ToggleWrapper
+                        $isOn={device.isAuto}
+                        onClick={(e) => handleToggleAuto(device.id, e)}
+                      >
+                        <div className="toggle-bg">
+                          <div className="toggle-knob"></div>
+                        </div>
+                      </ToggleWrapper>
+                    </div>
+
+                    <MiniChartWrapper>
+                      <svg viewBox="0 0 100 30" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient
+                            id={`grad-${device.id}`}
+                            x1="0%"
+                            y1="0%"
+                            x2="0%"
+                            y2="100%"
+                          >
+                            <stop
+                              offset="0%"
+                              stopColor={isWarning ? '#EF4444' : '#10B981'}
+                              stopOpacity="0.3"
+                            />
+                            <stop
+                              offset="100%"
+                              stopColor={isWarning ? '#EF4444' : '#10B981'}
+                              stopOpacity="0"
+                            />
+                          </linearGradient>
+                        </defs>
+                        <path
+                          d={`M 0,30 ${getTrendData.map((v, i) => `L ${i * 14.3},${30 - (v / 100) * 30}`).join(' ')} L 100,30 Z`}
+                          fill={`url(#grad-${device.id})`}
+                        />
+                        <polyline
+                          fill="none"
+                          stroke={isWarning ? '#EF4444' : '#10B981'}
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          points={getTrendData
+                            .map((v, i) => `${i * 14.3},${30 - (v / 100) * 30}`)
+                            .join(' ')}
+                        />
+                        {(() => {
+                          const lastVal = getTrendData[getTrendData.length - 1];
+                          return (
+                            <circle
+                              cx="100"
+                              cy={30 - (lastVal / 100) * 30}
+                              r="3"
+                              fill={isWarning ? '#EF4444' : '#10B981'}
+                            />
+                          );
+                        })()}
+                      </svg>
+                    </MiniChartWrapper>
+
+                    <div className="card-bottom">
+>>>>>>> e39c9cef2216581ecee4ce46559c03168e9ccb55
                       <span
                         className={`status-tag ${device.isAuto ? 'auto' : 'manual'}`}
                       >
@@ -546,6 +622,7 @@ const StopBtn = styled.button`
   font-size: 11px;
   font-weight: 800;
   cursor: pointer;
+<<<<<<< HEAD
   box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
   transition: 0.2s;
   &:hover {
@@ -554,6 +631,28 @@ const StopBtn = styled.button`
   }
   &:active {
     transform: scale(0.95);
+=======
+  width: 40px;
+  height: 20px;
+  .toggle-bg {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    background: ${(p) => (p.$isOn ? '#10B981' : '#CBD5E1')};
+    position: relative;
+    transition: 0.3s;
+  }
+  .toggle-knob {
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    left: ${(p) => (p.$isOn ? '23px' : '3px')};
+    transition: 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+>>>>>>> e39c9cef2216581ecee4ce46559c03168e9ccb55
   }
 `;
 const HistoryCard = styled(BaseCard)`

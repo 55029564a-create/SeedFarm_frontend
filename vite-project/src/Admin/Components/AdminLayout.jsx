@@ -55,7 +55,7 @@ const AdminLayout = () => {
       return { menu: 'Device', title: 'Device Control Panel' };
     if (path.includes('cctv'))
       return { menu: 'CCTV', title: 'Multi-Branch CCTV' };
-    return { menu: 'Dashboard', title: 'Live Dashboard' };
+    return { menu: 'Dashboard', title: '실시간 대시보드' };
   };
 
   const { menu, title } = getPageInfo();
