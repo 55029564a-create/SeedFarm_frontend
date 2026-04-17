@@ -452,6 +452,7 @@ const DeviceGrid = styled.div`
   }
 `;
 const DeviceCard = styled.div`
+  margin-top: 6px;
   background: #f8fafc;
   border-radius: 16px;
   padding: 1.2em;
