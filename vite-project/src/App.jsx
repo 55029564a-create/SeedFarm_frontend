@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import AdminPage from './Admin/Pages/AdminPage';
+// import AdminPage from './Admin/Pages/AdminPage';
 import LandingPage from './Landing/Pages/LandingPage';
 import GlobalStyle from './GlobalStyle';
 import LoginPage from './Admin/Pages/LoginPage';
@@ -24,7 +24,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/Login" element={<LoginPage />} />
-          <Route path="/Admin" element={<AdminPage />} />
+          {/* <Route path="/Admin" element={<AdminPage />} /> */}
 
           {/* 태블릿, 모바일 전용~ */}
           <Route path="/field" element={<TMHomePage />} />
