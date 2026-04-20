@@ -136,7 +136,7 @@ const Sidebar = ({ activeMenu, isOpen, closeSidebar }) => {
           <div className="logo-icon">
             <Icons.Leaf />
           </div>
-          <span className="logo-text">Seed Farm</span>
+          <span className="logo-text">Seed-Farm</span>
         </div>
         <CloseBtn onClick={closeSidebar}>
           <Icons.Close />
@@ -145,7 +145,7 @@ const Sidebar = ({ activeMenu, isOpen, closeSidebar }) => {
 
       {/* 2. 메인 메뉴 영역 */}
       <NavList>
-        <div className="menu-label">MENU</div>
+        <div className="menu-label">관제 메뉴</div>
         <NavItem
           className={activeMenu === 'Dashboard' ? 'active' : ''}
           onClick={() => handleNavigate('/DashBoard')}
@@ -153,7 +153,7 @@ const Sidebar = ({ activeMenu, isOpen, closeSidebar }) => {
           <div className="nav-icon">
             <Icons.Dashboard />
           </div>
-          <span className="nav-text">Dashboard</span>
+          <span className="nav-text">종합 대시보드</span>
         </NavItem>
         <NavItem
           className={activeMenu === 'CCTV' ? 'active' : ''}
@@ -162,7 +162,7 @@ const Sidebar = ({ activeMenu, isOpen, closeSidebar }) => {
           <div className="nav-icon">
             <Icons.Camera />
           </div>
-          <span className="nav-text">CCTV & Sectors</span>
+          <span className="nav-text">현장 관제 (CCTV)</span>
         </NavItem>
         <NavItem
           className={activeMenu === 'Device' ? 'active' : ''}
@@ -171,7 +171,7 @@ const Sidebar = ({ activeMenu, isOpen, closeSidebar }) => {
           <div className="nav-icon">
             <Icons.Sliders />
           </div>
-          <span className="nav-text">Device Control</span>
+          <span className="nav-text">목표 수치 설정</span>
         </NavItem>
         <NavItem
           className={activeMenu === 'Analysis' ? 'active' : ''}
@@ -180,7 +180,7 @@ const Sidebar = ({ activeMenu, isOpen, closeSidebar }) => {
           <div className="nav-icon">
             <Icons.Trending />
           </div>
-          <span className="nav-text">Data Analysis</span>
+          <span className="nav-text">데이터 분석/통계</span>
         </NavItem>
       </NavList>
 
@@ -188,21 +188,21 @@ const Sidebar = ({ activeMenu, isOpen, closeSidebar }) => {
 
       {/* 3. 하단 유저 프로필 & 로그아웃 영역 */}
       <BottomArea>
-        <div className="menu-label">GENERAL</div>
+        <div className="menu-label">시스템 관리</div>
         <UserProfile>
           <div className="avatar">
             <Icons.User />
           </div>
           <div className="user-info">
-            <div className="name">Admin Manager</div>
-            <div className="role">System Operator</div>
+            <div className="name">마스터 관리자</div>
+            <div className="role">총괄 관제 센터장</div>
           </div>
         </UserProfile>
         <LogoutBtn onClick={() => handleNavigate('/Login')}>
           <div className="nav-icon">
             <Icons.Logout />
           </div>
-          <span className="nav-text">Logout</span>
+          <span className="nav-text">시스템 로그아웃</span>
         </LogoutBtn>
       </BottomArea>
     </SidebarContainer>

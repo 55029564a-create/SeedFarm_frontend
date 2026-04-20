@@ -8,51 +8,51 @@ const DashboardPage = () => {
 
   const dashboardData = useMemo(
     () => ({
-      '천안 본점 (Cheonan Hub)': {
+      '천안 본점 (종합관제센터)': {
         score: 96,
         phase: '개화기 🌸',
-        status: '작물 활력도 최상 (전주 대비 2% ↗)',
+        status: '작물 활력도 최상 (전주 대비 2% 상승)',
         sensors: [
           {
-            label: 'Temperature',
+            label: '내부 온도',
             value: 24.2,
             unit: '°C',
             trend: '+0.5',
             status: 'stable',
           },
           {
-            label: 'Humidity',
+            label: '내부 습도',
             value: 65,
             unit: '%',
             trend: '-2',
             status: 'down',
           },
           {
-            label: 'CO2 Level',
+            label: 'CO2 농도',
             value: 410,
             unit: 'ppm',
             trend: '+15',
             status: 'up',
           },
           {
-            label: 'Radiation',
+            label: '광합성 광량',
             value: 350,
-            unit: 'W/m²',
-            trend: 'Sunny',
+            unit: 'PPFD',
+            trend: '최적',
             status: 'stable',
           },
           {
-            label: 'Soil EC',
+            label: '토양 양액 농도(EC)',
             value: 1.2,
             unit: 'dS/m',
-            trend: 'Stable',
+            trend: '유지',
             status: 'stable',
           },
           {
-            label: 'Soil pH',
+            label: '토양 산도(pH)',
             value: 5.8,
-            unit: '',
-            trend: 'Stable',
+            unit: 'pH',
+            trend: '유지',
             status: 'stable',
           },
         ],
@@ -66,80 +66,82 @@ const DashboardPage = () => {
           {
             id: 1,
             time: '14:10',
-            sector: 'Sector 01',
-            zone: 'Section A',
-            device: '💧 관수 펌프',
-            action: '가동 중',
-            desc: '설정값: Water 2.5L / EC 1.2 투입 완료',
+            device: '💧 메인 펌프',
+            action: '가동',
+            desc: 'EC 1.2 공급',
             status: 'active',
           },
           {
             id: 2,
             time: '13:30',
-            sector: 'Sector 02',
-            zone: 'Section C',
             device: '💨 배기팬 2번',
-            action: 'Level 2 전개',
-            desc: '목표 온도 24°C 도달을 위한 강제 배기',
+            action: '2단계',
+            desc: '온도 초과 배기',
             status: 'active',
           },
           {
             id: 3,
             time: '11:00',
-            sector: 'All Sectors',
-            zone: 'Roof',
             device: '🌤️ 차광 스크린',
-            action: '50% 닫힘',
-            desc: '외부 일사량 초과로 인한 연동 제어',
+            action: '50% 전개',
+            desc: '일사량 차단',
+            status: 'done',
+          },
+          {
+            id: 4,
+            time: '10:00',
+            device: '💡 LED 보광등',
+            action: '소등',
+            desc: '주간 모드 전환',
             status: 'done',
           },
         ],
       },
-      '천안 제2센터 (Cheonan B2)': {
+      '천안 제2센터 (육묘 전용)': {
         score: 88,
         phase: '정식기 🌱',
-        status: '초기 활착 진행 중 (안정)',
+        status: '초기 활착 안정적 진행 중',
         sensors: [
           {
-            label: 'Temperature',
+            label: '내부 온도',
             value: 22.5,
             unit: '°C',
             trend: '+0.2',
             status: 'stable',
           },
           {
-            label: 'Humidity',
+            label: '내부 습도',
             value: 70,
             unit: '%',
             trend: '+5',
             status: 'up',
           },
           {
-            label: 'CO2 Level',
+            label: 'CO2 농도',
             value: 450,
             unit: 'ppm',
             trend: '-10',
             status: 'down',
           },
           {
-            label: 'Radiation',
+            label: '광합성 광량',
             value: 280,
-            unit: 'W/m²',
-            trend: 'Cloudy',
+            unit: 'PPFD',
+            trend: '흐림',
             status: 'stable',
           },
           {
-            label: 'Soil EC',
+            label: '토양 양액 농도(EC)',
             value: 1.0,
             unit: 'dS/m',
-            trend: 'Stable',
+            trend: '유지',
             status: 'stable',
           },
           {
-            label: 'Soil pH',
+            label: '토양 산도(pH)',
             value: 6.0,
-            unit: '',
-            trend: 'Stable',
+            unit: 'pH',
+            trend: '유지',
             status: 'stable',
           },
         ],
@@ -153,21 +155,17 @@ const DashboardPage = () => {
           {
             id: 1,
             time: '14:15',
-            sector: 'Sector 01',
-            zone: 'Section B',
             device: '🌡️ 온풍기',
-            action: '가동 대기',
-            desc: '야간 목표 온도 18°C 설정 완료',
+            action: '대기 모드',
+            desc: '야간 설정 온도 18°C 대기 중',
             status: 'done',
           },
           {
             id: 2,
             time: '12:00',
-            sector: 'Sector 03',
-            zone: 'Nursery',
             device: '💡 LED 보광등',
-            action: '점등',
-            desc: '일조량 부족 감지 -> 주간 모드 전환',
+            action: '점등 가동',
+            desc: '일조량 부족 감지 -> 광량 보충 실행',
             status: 'active',
           },
         ],
@@ -177,9 +175,18 @@ const DashboardPage = () => {
   );
 
   const currentData =
-    dashboardData[selectedBranch] || dashboardData['천안 본점 (Cheonan Hub)'];
+    dashboardData[selectedBranch] ||
+    dashboardData['천안 본점 (종합관제센터)'];
 
   const [liveSensors, setLiveSensors] = useState(currentData.sensors);
+
+  const weatherData = {
+    temp: 15.2,
+    desc: '맑음',
+    humidity: 42,
+    aqi: '보통',
+    icon: '🌤️',
+  };
 
   useEffect(() => {
     setLiveSensors(currentData.sensors);
@@ -187,11 +194,11 @@ const DashboardPage = () => {
     const interval = setInterval(() => {
       setLiveSensors((prev) =>
         prev.map((s) => {
-          if (s.label === 'Temperature' || s.label === 'Humidity') {
+          if (s.label === '내부 온도' || s.label === '내부 습도') {
             const fluctuate = Math.random() * 0.2 - 0.1;
             return {
               ...s,
-              value: (parseFloat(s.value) + fluctuate).toFixed(1),
+              value: Number(parseFloat(s.value) + fluctuate).toFixed(1),
             };
           }
           return s;
@@ -206,14 +213,14 @@ const DashboardPage = () => {
     {
       time: '14:25',
       status: 'action',
-      title: '관수량 10% 증가 권장',
-      desc: '오후 일사량 급증 예상 (신뢰도: 95%)',
+      title: '관수량 10% 증량 권장',
+      desc: '오후 외부 일사량 급증 예상 대비',
     },
     {
       time: '13:55',
       status: 'warning',
-      title: '환기 타이밍 경고',
-      desc: '향후 1시간 내 내부 온도 28°C 돌파 예상',
+      title: '고온 피해 주의보',
+      desc: '내부 온도 28°C 돌파 예상 - 사전 환기 필요',
     },
     {
       time: '13:20',
@@ -224,39 +231,39 @@ const DashboardPage = () => {
   ];
 
   const sensorMetaMap = {
-    Temperature: {
+    '내부 온도': {
       range: '정상 22~26°C',
       updatedAt: '방금 전',
     },
-    Humidity: {
+    '내부 습도': {
       range: '정상 55~70%',
       updatedAt: '방금 전',
     },
-    'CO2 Level': {
+    'CO2 농도': {
       range: '정상 350~500 ppm',
       updatedAt: '1분 전',
     },
-    Radiation: {
-      range: '기준 250~400 W/m²',
+    '광합성 광량': {
+      range: '기준 250~400 PPFD',
       updatedAt: '1분 전',
     },
-    'Soil EC': {
+    '토양 양액 농도(EC)': {
       range: '정상 1.0~1.5 dS/m',
       updatedAt: '방금 전',
     },
-    'Soil pH': {
-      range: '정상 5.5~6.5',
+    '토양 산도(pH)': {
+      range: '정상 5.5~6.5 pH',
       updatedAt: '방금 전',
     },
   };
 
   const mainSensorCards = [
-    liveSensors.find((s) => s.label === 'Temperature'),
-    liveSensors.find((s) => s.label === 'Humidity'),
-    liveSensors.find((s) => s.label === 'CO2 Level'),
-    liveSensors.find((s) => s.label === 'Radiation'),
-    liveSensors.find((s) => s.label === 'Soil EC'),
-    liveSensors.find((s) => s.label === 'Soil pH'),
+    liveSensors.find((s) => s.label === '내부 온도'),
+    liveSensors.find((s) => s.label === '내부 습도'),
+    liveSensors.find((s) => s.label === 'CO2 농도'),
+    liveSensors.find((s) => s.label === '광합성 광량'),
+    liveSensors.find((s) => s.label === '토양 양액 농도(EC)'),
+    liveSensors.find((s) => s.label === '토양 산도(pH)'),
   ]
     .filter(Boolean)
     .map((sensor) => ({
@@ -276,20 +283,20 @@ const DashboardPage = () => {
             </div>
 
             <div className="weather-main">
-              <div className="weather-icon">☀️</div>
+              <div className="weather-icon">{weatherData.icon}</div>
               <div className="weather-info">
                 <div className="temp">
-                  {liveSensors.find((s) => s.label === 'Temperature')?.value}
+                  {weatherData.temp}
                   <span>°C</span>
                 </div>
                 <div className="desc">
-                  맑음 · 습도 {liveSensors.find((s) => s.label === 'Humidity')?.value}%
+                  {weatherData.desc} · 습도 {weatherData.humidity}%
                 </div>
               </div>
             </div>
 
             <div className="bottom-row">
-              <span className="badge">대기: 보통</span>
+              <span className="badge">대기: {weatherData.aqi}</span>
               <span className="muted">광주/환기 연동 대기</span>
             </div>
           </WeatherMiniCard>
@@ -865,7 +872,7 @@ const CameraCard = styled(BaseCard)`
 `;
 
 const LogGroupCard = styled(BaseCard)`
-  flex: 0 0 350px;
+  flex: 0 0 300px;
   height: 300px;
   min-height: 300px;
   max-height: 300px;
@@ -885,16 +892,16 @@ const LogGroupCard = styled(BaseCard)`
   @media (max-width: 1200px) {
     flex: none;
     height: auto;
-    min-height: 350px;
+    min-height: 300px;
     max-height: none;
   }
 `;
 
 const AILogGroupCard = styled(BaseCard)`
   flex: 1;
-  height: calc(610px - 350px - 1.1em);
+  height: calc(610px - 300px - 1.1em);
   min-height: 240px;
-  max-height: calc(610px - 350px - 1.1em);
+  max-height: calc(610px - 300px - 1.1em);
   padding: 1em;
   overflow: hidden;
 
@@ -986,8 +993,7 @@ const SensorRowItem = styled.div`
     font-size: 0.72em;
     font-weight: 800;
     color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: -0.01em;
   }
 
   .trend {

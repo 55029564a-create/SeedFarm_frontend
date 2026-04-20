@@ -60,11 +60,11 @@ const System = () => {
   const { ref: sectionRef, className: animateClass } = useScrollFadeIn();
 
   return (
-    <Section id="system" bg="#F8FBF8">
+    <Section id="system" $bg="#F8FBF8">
       {/* 💡 Container에 ref를 달아 스크롤 트리거 영역으로 설정 */}
       <Container ref={sectionRef}>
         {/* 💡 텍스트 영역이 제일 먼저 나타납니다 (delay 0s) */}
-        <AnimatedBox className={animateClass} delay="0s">
+        <AnimatedBox className={animateClass} $delay="0s">
           <SectionTitle>스마트팜 시스템 구성</SectionTitle>
           <SectionDesc>
             현장의 데이터를 수집하고, AI가 분석한 결과를 대시보드와 제어
@@ -74,7 +74,7 @@ const System = () => {
 
         <Flow>
           {/* 💡 각 Step과 Arrow에 0.1초 간격으로 점진적인 딜레이를 부여합니다 */}
-          <AnimatedBox className={animateClass} delay="0.1s">
+          <AnimatedBox className={animateClass} $delay="0.1s">
             <Step>
               <Icon>📷</Icon>
               <h3>카메라</h3>
@@ -82,11 +82,11 @@ const System = () => {
             </Step>
           </AnimatedBox>
 
-          <AnimatedBox className={animateClass} delay="0.2s">
+          <AnimatedBox className={animateClass} $delay="0.2s">
             <Arrow>→</Arrow>
           </AnimatedBox>
 
-          <AnimatedBox className={animateClass} delay="0.3s">
+          <AnimatedBox className={animateClass} $delay="0.3s">
             <Step>
               <Icon>🌡</Icon>
               <h3>센서</h3>
@@ -94,11 +94,11 @@ const System = () => {
             </Step>
           </AnimatedBox>
 
-          <AnimatedBox className={animateClass} delay="0.4s">
+          <AnimatedBox className={animateClass} $delay="0.4s">
             <Arrow>→</Arrow>
           </AnimatedBox>
 
-          <AnimatedBox className={animateClass} delay="0.5s">
+          <AnimatedBox className={animateClass} $delay="0.5s">
             <Step>
               <Icon>🧠</Icon>
               <h3>AI 분석</h3>
@@ -106,11 +106,11 @@ const System = () => {
             </Step>
           </AnimatedBox>
 
-          <AnimatedBox className={animateClass} delay="0.6s">
+          <AnimatedBox className={animateClass} $delay="0.6s">
             <Arrow>→</Arrow>
           </AnimatedBox>
 
-          <AnimatedBox className={animateClass} delay="0.7s">
+          <AnimatedBox className={animateClass} $delay="0.7s">
             <Step>
               <Icon>📱</Icon>
               <h3>모니터링</h3>

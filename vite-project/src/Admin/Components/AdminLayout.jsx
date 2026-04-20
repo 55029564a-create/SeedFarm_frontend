@@ -15,34 +15,34 @@ const AdminLayout = () => {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isBranchOpen, setIsBranchOpen] = useState(false);
 
-  // 🚨 지역별 지하 스마트팜 지점(Branch) 데이터로 스케일 업!
+  // 📍 지점 명칭을 실제 운영 센터 느낌으로 변경
   const branches = [
-    '천안 제1센터 (Cheonan)',
-    '천안 제2센터 (Cheonan)',
-    '천안 제3센터 (Cheonan)',
-    '천안 제4센터 (Cheonan)',
+    '천안 본점 (종합관제센터)',
+    '천안 제2센터 (육묘 전용)',
+    '천안 제3센터 (연구/R&D)',
+    '천안 제4센터 (지하 생산단지)',
   ];
 
   const [selectedBranch, setSelectedBranch] = useState(branches[0]);
 
-  // 알림 내용도 지점 스케일에 맞춰서 변경
+  // 🔔 알림 내용을 실무형 텍스트로 보강
   const alerts = [
     {
       id: 1,
       type: 'warning',
-      text: '천안 제1센터 지하 2층 내부 온도 28°C 초과',
+      text: '천안 제1센터: 지하 2층 내부 온도 임계치(28°C) 초과',
       time: '10분 전',
     },
     {
       id: 2,
       type: 'action',
-      text: '천안 제3센터 제습 시스템 자동 가동',
+      text: '천안 제3센터: 습도 최적화를 위한 제습 시스템 자동 가동',
       time: '1시간 전',
     },
     {
       id: 3,
       type: 'normal',
-      text: '전 지점 일일 생육 및 전력 리포트 생성 완료',
+      text: '전 지점: 주간 생육 리포트 및 전력 분석 보고서 생성 완료',
       time: '2시간 전',
     },
   ];
@@ -50,12 +50,12 @@ const AdminLayout = () => {
   const getPageInfo = () => {
     const path = location.pathname.toLowerCase();
     if (path.includes('analysis'))
-      return { menu: 'Analysis', title: 'Data Analysis' };
+      return { menu: 'Analysis', title: '데이터 분석 및 통계 리포트' };
     if (path.includes('device'))
-      return { menu: 'Device', title: 'Device Control Panel' };
+      return { menu: 'Device', title: '지능형 목표 수치 설정 (Override)' };
     if (path.includes('cctv'))
-      return { menu: 'CCTV', title: 'Multi-Branch CCTV' };
-    return { menu: 'Dashboard', title: 'Live Dashboard' };
+      return { menu: 'CCTV', title: '다중 지점 실시간 관제 (CCTV)' };
+    return { menu: 'Dashboard', title: '종합 관제 대시보드' };
   };
 
   const { menu, title } = getPageInfo();
@@ -74,7 +74,7 @@ const AdminLayout = () => {
             className="header-actions"
             style={{ display: 'flex', gap: '1em' }}
           >
-            {/* 🔔 알림 버튼 */}
+            {/* 🔔 관제 알림 드롭다운 */}
             <DropdownWrapper>
               <FixedHeaderBtn
                 className="alert"
@@ -83,12 +83,12 @@ const AdminLayout = () => {
                   setIsBranchOpen(false);
                 }}
               >
-                <span>🔔 {alerts.length} Alert</span>
+                <span>🔔 알림 ({alerts.length})</span>
               </FixedHeaderBtn>
 
               {isAlertOpen && (
                 <DropdownMenu className="alert-menu">
-                  <div className="menu-header">최근 지점 알림</div>
+                  <div className="menu-header">최근 관제 알림</div>
                   {alerts.map((alert) => (
                     <div key={alert.id} className={`alert-item ${alert.type}`}>
                       <p>{alert.text}</p>
@@ -99,7 +99,7 @@ const AdminLayout = () => {
               )}
             </DropdownWrapper>
 
-            {/* 📍 지점(Branch) 선택 버튼 */}
+            {/* 📍 관리 지점 선택 드롭다운 */}
             <DropdownWrapper>
               <FixedHeaderBtn
                 onClick={() => {
@@ -132,7 +132,6 @@ const AdminLayout = () => {
         </TopHeader>
 
         <ContentArea>
-          {/* 🚨 하위 페이지(대시보드, 기기제어 등)로 현재 선택된 '지점' 정보를 내려줍니다! */}
           <Outlet context={{ selectedBranch }} />
         </ContentArea>
       </MainWrapper>

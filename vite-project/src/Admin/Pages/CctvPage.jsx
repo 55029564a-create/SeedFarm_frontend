@@ -1,44 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { BaseCard, CardTitle } from './Styles/AdminShared';
+import { BaseCard, CardTitle, Flex } from './Styles/AdminShared';
 
 const CctvPage = () => {
+  // 🚨 K-농장/기업에서 쓰는 직관적인 구역 명칭으로 변경
   const sectors = [
-    { id: 'sec_1', name: 'Sector 01 (토마토 A동)' },
-    { id: 'sec_2', name: 'Sector 02 (토마토 B동)' },
-    { id: 'sec_3', name: 'Sector 03 (육묘장)' },
+    { id: 'sec_1', name: '1구역 (토마토 A동)' },
+    { id: 'sec_2', name: '2구역 (토마토 B동)' },
+    { id: 'sec_3', name: '3구역 (육묘장)' },
   ];
 
-  // 🚨 AI 잡다한 데이터 다 빼고 순수 카메라 메타데이터만 남김
   const cameras = [
     {
       id: 'c_1',
       sectorId: 'sec_1',
-      name: 'Section A - 상단 (Canopy)',
+      name: 'A블록 - 상단 (작물 생육부)',
       status: 'Live',
     },
     {
       id: 'c_2',
       sectorId: 'sec_1',
-      name: 'Section A - 하단 (Root)',
+      name: 'A블록 - 하단 (근권부)',
       status: 'Live',
     },
     {
       id: 'c_3',
       sectorId: 'sec_1',
-      name: 'Section B - 중앙 통로',
+      name: 'B블록 - 중앙 통로',
       status: 'Warning',
     },
     {
       id: 'c_4',
       sectorId: 'sec_2',
-      name: 'Section A - 전경 (Full View)',
+      name: 'A블록 - 전체 전경',
       status: 'Live',
     },
     {
       id: 'c_5',
       sectorId: 'sec_2',
-      name: 'Section B - 측창 (Side)',
+      name: 'B블록 - 측면 관측',
       status: 'Live',
     },
     { id: 'c_6', sectorId: 'sec_3', name: '발아실 내부', status: 'Live' },
@@ -55,23 +55,25 @@ const CctvPage = () => {
     if (firstCamOfSector) setActiveCam(firstCamOfSector);
   }, [activeSector]);
 
-  // 🚨 캡처 액션: 사진만 딱 찍어서 image_data 테이블로 넘기는 용도
   const handleCapture = () => {
     setIsCapturing(true);
     setTimeout(() => {
       setIsCapturing(false);
       alert(
-        `📸 [캡처 완료]\n- 현재 프레임이 image_data 테이블에 저장되었습니다.\n- AI 서버로 이미지 분석을 요청합니다.`,
+        `📸 [이미지 수집 완료]\n- 현재 프레임이 image_data DB에 정상 저장되었습니다.\n- AI 생육 분석 서버로 전송을 시작합니다.`,
       );
-    }, 150); // 실제 카메라 셔터처럼 짧고 강렬하게 번쩍!
+    }, 150);
   };
 
   return (
     <ContentGrid>
-      <LeftColumn>
-        <NavCard>
-          <CardTitle>Camera List</CardTitle>
+      {/* LeftColumn 대신 Flex 사용 */}
+      <Flex dir="column" flex="1" style={{ minWidth: 0 }}>
+        {/* NavCard 대신 BaseCard에 프롭스(flex="1") 적용 */}
+        <BaseCard flex="1">
+          <CardTitle>현장 카메라 목록</CardTitle>
           <NavContainer>
+            {/* ... 기존 NavContainer 내부 로직 동일 ... */}
             {sectors.map((sector) => {
               const isActiveSector = activeSector === sector.id;
               const sectorCams = cameras.filter(
@@ -107,56 +109,61 @@ const CctvPage = () => {
               );
             })}
           </NavContainer>
-        </NavCard>
-      </LeftColumn>
+        </BaseCard>
+      </Flex>
 
-      <MainCameraColumn>
+      {/* MainCameraColumn 대신 Flex 사용 */}
+      <Flex dir="column" flex="1" style={{ minWidth: 0 }}>
         <CameraCard>
+          {/* ... 기존 CameraCard 내부 로직 동일 ... */}
           <div className="camera-header">
             <div className="title-area">
               <CardTitle style={{ marginBottom: 0 }}>
                 {sectors.find((s) => s.id === activeCam.sectorId)?.name} /{' '}
                 {activeCam.name}
               </CardTitle>
-              <span className="cam-id">ID: {activeCam.id.toUpperCase()}</span>
+              <span className="cam-id">
+                기기 ID: {activeCam.id.toUpperCase()}
+              </span>
             </div>
 
             <div
               className={`live-badge ${activeCam.status === 'Live' ? 'live' : 'warning'}`}
             >
-              {activeCam.status === 'Live' ? '🔴 LIVE FEED' : '⚠️ SIGNAL WEAK'}
+              {activeCam.status === 'Live'
+                ? '🔴 실시간 관제 중'
+                : '⚠️ 신호 미약 (점검 요망)'}
             </div>
           </div>
 
           <div className={`camera-container ${isCapturing ? 'capturing' : ''}`}>
-            {/* 배경 영상 플레이스홀더 */}
             <div className="video-placeholder">
               <span className="icon">
                 {activeCam.status === 'Live' ? '📹' : '📡'}
               </span>
               <p>
                 {activeCam.status === 'Live'
-                  ? 'Real-time Video Streaming...'
-                  : 'Connection Lost. Retrying...'}
+                  ? '실시간 영상 스트리밍 연결 중...'
+                  : '카메라 연결 유실. 재시도 중...'}
               </p>
             </div>
           </div>
 
           <CameraControls>
             <div className="control-group">
-              <button>◀ Pan Left</button>
-              <button>Pan Right ▶</button>
+              <button>◀ 좌측 회전</button>
+              <button>우측 회전 ▶</button>
             </div>
             <div className="control-group">
-              <button>➕ Zoom In</button>
-              <button>➖ Zoom Out</button>
+              <button>➕ 줌 인 (확대)</button>
+              <button>➖ 줌 아웃 (축소)</button>
             </div>
             <button className="primary-btn" onClick={handleCapture}>
-              📸 Capture Frame
+              📸 분석용 화면 캡처
             </button>
           </CameraControls>
         </CameraCard>
-      </MainCameraColumn>
+      </Flex>
     </ContentGrid>
   );
 };
@@ -177,19 +184,7 @@ const ContentGrid = styled.div`
     flex-direction: column;
   }
 `;
-const LeftColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  min-width: 0;
-`;
-const NavCard = styled(BaseCard)`
-  flex: 1;
-  padding: 1.5em;
-  display: flex;
-  flex-direction: column;
-`;
+
 const NavContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -292,13 +287,6 @@ const NavContainer = styled.div`
   }
 `;
 
-const MainCameraColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  min-width: 0;
-`;
 const CameraCard = styled(BaseCard)`
   flex: 1;
   padding: 0;
