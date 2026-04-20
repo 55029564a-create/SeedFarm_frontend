@@ -309,41 +309,6 @@ const DashboardPage = () => {
           </ScoreMiniCard>
         </TopLeftGroup>
 
-        <WaterSystemCard>
-          <div className="header-row">
-            <CardTitle>수자원 및 여과 시스템</CardTitle>
-            <span className="system-badge">급수 가동</span>
-          </div>
-
-          <div className="water-body">
-            <div className="tank-wrap">
-              <div className="tank">
-                <div className="tank-fill"></div>
-              </div>
-              <span className="tank-label">메인 수조</span>
-            </div>
-
-            <div className="info-wrap">
-              <div className="info-row">
-                <span>수조 잔량</span>
-                <strong>78%</strong>
-              </div>
-              <div className="info-row">
-                <span>관수 유량</span>
-                <strong>2.5 L/min</strong>
-              </div>
-              <div className="info-row">
-                <span>여과기 상태</span>
-                <strong className="ok">정상 (교체 불필요)</strong>
-              </div>
-              <p className="info-desc">
-                관수에 필요한 물을 저장하며, 여과 시스템을 거쳐 배관 수조로
-                분배합니다.
-              </p>
-            </div>
-          </div>
-        </WaterSystemCard>
-
         <GrowthCard>
           <CardTitle>식물 생육 지표</CardTitle>
           <GrowthGrid>
@@ -430,9 +395,9 @@ const DashboardPage = () => {
         <RightColumn>
           <SensorsGroupCard>
             <CardTitle>환경 측정 데이터</CardTitle>
-            <VerticalSensorList>
+            <SensorGrid>
               {mainSensorCards.map((sensor, index) => (
-                <SensorRowItem key={index}>
+                <SensorGridItem key={index}>
                   <div className="top">
                     <div className="label">{sensor.label}</div>
                     <div className={`trend ${sensor.status}`}>
@@ -454,9 +419,9 @@ const DashboardPage = () => {
                     <span className="range">{sensor.range}</span>
                     <span className="updated">{sensor.updatedAt}</span>
                   </div>
-                </SensorRowItem>
+                </SensorGridItem>
               ))}
-            </VerticalSensorList>
+            </SensorGrid>
           </SensorsGroupCard>
         </RightColumn>
       </BottomRow>
@@ -479,18 +444,25 @@ const BaseCard = styled.div`
 `;
 
 const PageGrid = styled.div`
+  --grid-gap: 1.1em;
+
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1.1em;
+  gap: var(--grid-gap);
   width: 100%;
   min-height: 0;
 `;
 
 const TopRow = styled.div`
   display: grid;
-  grid-template-columns: 1.3fr 1.4fr 1fr;
-  gap: 1.1em;
+  grid-template-columns:
+    calc((100% - (var(--grid-gap) * 2)) * (1.5 / 3.35))
+    calc(
+      100% - ((100% - (var(--grid-gap) * 2)) * (1.5 / 3.35)) -
+        var(--grid-gap)
+    );
+  gap: var(--grid-gap);
   width: 100%;
 
   @media (max-width: 1200px) {
@@ -500,8 +472,8 @@ const TopRow = styled.div`
 
 const TopLeftGroup = styled.div`
   display: grid;
-  grid-template-columns: 1fr 0.9fr;
-  gap: 1.1em;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--grid-gap);
   min-width: 0;
 
   @media (max-width: 640px) {
@@ -512,7 +484,7 @@ const TopLeftGroup = styled.div`
 const BottomRow = styled.div`
   display: grid;
   grid-template-columns: 1.5fr 1fr 0.85fr;
-  gap: 1.1em;
+  gap: var(--grid-gap);
   width: 100%;
   height: 610px;
   min-height: 610px;
@@ -530,7 +502,7 @@ const BottomRow = styled.div`
 const CenterColumn = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1.1em;
+  gap: var(--grid-gap);
   min-width: 0;
   height: 610px;
   min-height: 610px;
@@ -684,108 +656,6 @@ const ScoreMiniCard = styled(BaseCard)`
   }
 `;
 
-const WaterSystemCard = styled(BaseCard)`
-  min-height: 190px;
-
-  .header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.8em;
-    gap: 1em;
-
-    h2 {
-      margin: 0;
-    }
-  }
-
-  .system-badge {
-    font-size: 0.7em;
-    font-weight: 800;
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-    white-space: nowrap;
-  }
-
-  .water-body {
-    display: flex;
-    align-items: center;
-    gap: 1.1em;
-    flex: 1;
-  }
-
-  .tank-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.45em;
-    flex-shrink: 0;
-  }
-
-  .tank {
-    width: 60px;
-    height: 110px;
-    border: 2px solid #cbd5e1;
-    border-radius: 10px 10px 14px 14px;
-    overflow: hidden;
-    background: #f8fafc;
-    position: relative;
-  }
-
-  .tank-fill {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 78%;
-    background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 100%);
-  }
-
-  .tank-label {
-    font-size: 0.72em;
-    font-weight: 700;
-    color: #475569;
-  }
-
-  .info-wrap {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.65em;
-    min-width: 0;
-  }
-
-  .info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1em;
-    font-size: 0.83em;
-    font-weight: 700;
-    color: #475569;
-
-    strong {
-      font-weight: 800;
-      color: #0f172a;
-      white-space: nowrap;
-    }
-
-    .ok {
-      color: #10b981;
-    }
-  }
-
-  .info-desc {
-    margin: 0.1em 0 0 0;
-    font-size: 0.73em;
-    line-height: 1.45;
-    color: #94a3b8;
-    font-weight: 600;
-  }
-`;
-
 const CameraCard = styled(BaseCard)`
   height: 610px;
   min-height: 610px;
@@ -899,9 +769,9 @@ const LogGroupCard = styled(BaseCard)`
 
 const AILogGroupCard = styled(BaseCard)`
   flex: 1;
-  height: calc(610px - 300px - 1.1em);
+  height: calc(610px - 300px - var(--grid-gap));
   min-height: 240px;
-  max-height: calc(610px - 300px - 1.1em);
+  max-height: calc(610px - 300px - var(--grid-gap));
   padding: 1em;
   overflow: hidden;
 
@@ -949,14 +819,15 @@ const SensorsGroupCard = styled(BaseCard)`
   }
 `;
 
-const VerticalSensorList = styled.div`
-  display: flex;
-  flex-direction: column;
+const SensorGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.7em;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   padding-right: 0.3em;
+  align-content: start;
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -968,14 +839,15 @@ const VerticalSensorList = styled.div`
   }
 `;
 
-const SensorRowItem = styled.div`
+const SensorGridItem = styled.div`
   background-color: rgba(241, 245, 249, 0.6);
   border-radius: 16px;
-  padding: 0.9em 1em;
+  padding: 0.9em 0.9em;
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
+  justify-content: space-between;
   min-width: 0;
+  min-height: 118px;
   transition: background 0.3s ease;
 
   &:hover {
@@ -985,23 +857,27 @@ const SensorRowItem = styled.div`
   .top {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    gap: 0.8em;
+    align-items: flex-start;
+    gap: 0.4em;
+    margin-bottom: 0.45em;
   }
 
   .label {
-    font-size: 0.72em;
+    font-size: 0.68em;
     font-weight: 800;
     color: #64748b;
+    line-height: 1.35;
     letter-spacing: -0.01em;
+    word-break: keep-all;
   }
 
   .trend {
-    font-size: 0.72em;
+    font-size: 0.65em;
     font-weight: 800;
-    padding: 4px 10px;
+    padding: 3px 8px;
     border-radius: 20px;
     white-space: nowrap;
+    flex-shrink: 0;
 
     &.up {
       color: #ef4444;
@@ -1023,16 +899,18 @@ const SensorRowItem = styled.div`
     display: flex;
     align-items: baseline;
     gap: 4px;
+    margin-bottom: 0.45em;
 
     .value {
-      font-size: 1.35em;
+      font-size: 1.2em;
       font-weight: 800;
       color: #0f172a;
       letter-spacing: -0.02em;
+      line-height: 1;
     }
 
     .unit {
-      font-size: 0.76em;
+      font-size: 0.72em;
       font-weight: 700;
       color: #94a3b8;
     }
@@ -1040,23 +918,22 @@ const SensorRowItem = styled.div`
 
   .bottom {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.8em;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 0.2em;
   }
 
   .range {
-    font-size: 0.71em;
+    font-size: 0.66em;
     color: #64748b;
     font-weight: 700;
+    line-height: 1.3;
+    word-break: keep-all;
   }
 
   .updated {
-    font-size: 0.7em;
+    font-size: 0.65em;
     color: #94a3b8;
     font-weight: 700;
-    white-space: nowrap;
   }
 `;
 
@@ -1173,8 +1050,8 @@ const DeviceLogItem = styled.div`
 `;
 
 const GrowthCard = styled(BaseCard)`
-  padding: 1em;
   min-height: 190px;
+  padding: 1em;
 `;
 
 const GrowthGrid = styled.div`
