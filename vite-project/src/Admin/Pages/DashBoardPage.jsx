@@ -56,6 +56,7 @@ const DashboardPage = () => {
             status: 'stable',
           },
         ],
+        // 🚨 누락됐던 생장 데이터 복구
         growth: {
           height: '124.5 cm',
           leafCount: '18 개',
@@ -145,6 +146,7 @@ const DashboardPage = () => {
             status: 'stable',
           },
         ],
+        // 🚨 누락됐던 생장 데이터 복구
         growth: {
           height: '45.0 cm',
           leafCount: '8 개',
@@ -463,7 +465,6 @@ const DashboardPage = () => {
     </PageGrid>
   );
 };
-
 export default DashboardPage;
 
 const BaseCard = styled.div`
