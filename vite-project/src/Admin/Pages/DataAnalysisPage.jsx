@@ -8,8 +8,14 @@ const DataAnalysisPage = () => {
   const [selectedBatch, setSelectedBatch] = useState('batch_1');
   const [timeRange, setTimeRange] = useState('week');
 
-  // 🚨 3번째 차트(엽면적) 데이터 및 씨팜일지(AI 분석 데이터) 추가
-  const dataByBatch = {
+  // 🚨 1. 작기 목록 상태 (드롭다운에 즉각 반영하기 위해 State로 관리)
+  const [batchList, setBatchList] = useState([
+    { id: 'batch_1', name: '작기 #01 (토마토)', status: '진행중' },
+    { id: 'batch_2', name: '작기 #02 (토마토)', status: '종료됨' },
+  ]);
+
+  // 🚨 2. 작기별 데이터 저장소 상태
+  const [batchDataStore, setBatchDataStore] = useState({
     batch_1: {
       avgTemp: 23.9,
       tempError: 0.5,
@@ -51,42 +57,10 @@ const DataAnalysisPage = () => {
           icon: '🔴',
         },
         {
-          id: 1,
+          id: 2,
           type: 'disease',
           time: '04-20 14:30',
           title: '잎마름병(Blight) 발병 의심5',
-          desc: '신뢰도 92%, 심각도 Lv.3. 즉각적인 방제 권장.',
-          icon: '🔴',
-        },
-        {
-          id: 1,
-          type: 'disease',
-          time: '04-20 14:30',
-          title: '잎마름병(Blight) 발병 의심4',
-          desc: '신뢰도 92%, 심각도 Lv.3. 즉각적인 방제 권장.',
-          icon: '🔴',
-        },
-        {
-          id: 1,
-          type: 'disease',
-          time: '04-20 14:30',
-          title: '잎마름병(Blight) 발병 의심3',
-          desc: '신뢰도 92%, 심각도 Lv.3. 즉각적인 방제 권장.',
-          icon: '🔴',
-        },
-        {
-          id: 1,
-          type: 'disease',
-          time: '04-20 14:30',
-          title: '잎마름병(Blight) 발병 의심2',
-          desc: '신뢰도 92%, 심각도 Lv.3. 즉각적인 방제 권장.',
-          icon: '🔴',
-        },
-        {
-          id: 1,
-          type: 'disease',
-          time: '04-20 14:30',
-          title: '잎마름병(Blight) 발병 의심1',
           desc: '신뢰도 92%, 심각도 Lv.3. 즉각적인 방제 권장.',
           icon: '🔴',
         },
@@ -99,7 +73,7 @@ const DataAnalysisPage = () => {
           icon: '📈',
         },
         {
-          id: 2,
+          id: 7,
           type: 'flower',
           time: '04-18 11:15',
           title: '3화방 개화 확인',
@@ -107,7 +81,7 @@ const DataAnalysisPage = () => {
           icon: '🌼',
         },
         {
-          id: 3,
+          id: 8,
           type: 'harvest',
           time: '04-15 09:00',
           title: '1구역 1차 수확 완료',
@@ -123,7 +97,7 @@ const DataAnalysisPage = () => {
           icon: '📈',
         },
         {
-          id: 4,
+          id: 9,
           type: 'system',
           time: '04-10 02:00',
           title: '비상 발전기 가동',
@@ -163,13 +137,93 @@ const DataAnalysisPage = () => {
         },
       ],
     },
+  });
+
+  // 🚨 3. 오작동 방지 로직: 새 작기 시작
+  const handleStartBatch = () => {
+    // 이미 진행 중인 작기가 있는지 확인
+    const hasActive = batchList.some((b) => b.status === '진행중');
+    if (hasActive) {
+      alert(
+        '오류: 이미 진행 중인 작기가 있습니다.\n기존 작기를 먼저 종료해야 새 작기를 생성할 수 있습니다.',
+      );
+      return;
+    }
+
+    if (!window.confirm('새로운 작기를 생성하시겠습니까?')) return;
+
+    const newId = `batch_${Date.now()}`;
+    const newNum = batchList.length + 1;
+    const newBatchInfo = {
+      id: newId,
+      name: `작기 #${String(newNum).padStart(2, '0')} (토마토)`,
+      status: '진행중',
+    };
+
+    // 새 작기용 빈 데이터 보드 생성
+    setBatchDataStore((prev) => ({
+      ...prev,
+      [newId]: {
+        avgTemp: 0,
+        tempError: 0,
+        avgHumid: 0,
+        humidError: 0,
+        currentHeight: 0,
+        charts: { day: [], week: [], month: [] },
+        issues: [
+          {
+            id: Date.now(),
+            type: 'system',
+            time: '오늘 08:00',
+            title: '새 작기 시스템 할당',
+            desc: '씨드팜 모니터링이 시작되었습니다.',
+            icon: '🌱',
+          },
+        ],
+      },
+    }));
+
+    setBatchList([newBatchInfo, ...batchList]); // 드롭다운 맨 위에 추가
+    setSelectedBatch(newId); // 방금 만든 작기로 화면 자동 전환
+    setTimeRange('week');
+    alert(`[생성 완료] ${newBatchInfo.name} 모니터링을 시작합니다.`);
   };
 
+  // 🚨 4. 오작동 방지 로직: 작기 종료
+  const handleEndBatch = () => {
+    const current = batchList.find((b) => b.id === selectedBatch);
+
+    if (!current || current.status === '종료됨') {
+      alert('오류: 이미 종료 처리된 작기입니다.');
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `[주의] ${current.name} 작기를 정말 종료하시겠습니까?\n종료 후에는 데이터를 수정하거나 상태를 되돌릴 수 없습니다.`,
+      )
+    )
+      return;
+
+    // 현재 작기 상태를 '종료됨'으로 변경
+    setBatchList((prev) =>
+      prev.map((b) =>
+        b.id === selectedBatch ? { ...b, status: '종료됨' } : b,
+      ),
+    );
+    alert(`[종료 완료] ${current.name} 작기가 마감되었습니다.`);
+  };
+
+  // --- 화면 렌더링용 데이터 추출 ---
   const currentData = useMemo(
-    () => dataByBatch[selectedBatch],
-    [selectedBatch],
+    () => batchDataStore[selectedBatch],
+    [selectedBatch, batchDataStore],
   );
-  const activeChartData = currentData.charts[timeRange] || [];
+  const activeChartData = currentData?.charts[timeRange] || [];
+
+  // 현재 선택된 작기가 진행중인지 확인
+  const isBatchActive =
+    batchList.find((b) => b.id === selectedBatch)?.status === '진행중';
 
   // Y축 스케일 설정
   const maxTemp = 30;
@@ -177,29 +231,39 @@ const DataAnalysisPage = () => {
   const maxHeight = 20;
   const minHeight = 0;
   const maxLeaf = 50;
-  const minLeaf = 0; // 엽면적 스케일 추가
+  const minLeaf = 0;
 
   const getX = (index, total) => (total > 1 ? (index / (total - 1)) * 100 : 0);
   const getY = (val, max, min = 0) => 90 - ((val - min) / (max - min)) * 80;
 
-  const tempPoints = activeChartData
-    .map(
-      (d, i) =>
-        `${getX(i, activeChartData.length)},${getY(d.temp, maxTemp, minTemp)}`,
-    )
-    .join(' ');
-  const heightPoints = activeChartData
-    .map(
-      (d, i) =>
-        `${getX(i, activeChartData.length)},${getY(d.height, maxHeight, minHeight)}`,
-    )
-    .join(' ');
-  const leafPoints = activeChartData
-    .map(
-      (d, i) =>
-        `${getX(i, activeChartData.length)},${getY(d.leaf, maxLeaf, minLeaf)}`,
-    )
-    .join(' ');
+  // 🚨 빈 데이터일 때 차트 에러(NaN) 방지 처리
+  const tempPoints =
+    activeChartData.length > 0
+      ? activeChartData
+          .map(
+            (d, i) =>
+              `${getX(i, activeChartData.length)},${getY(d.temp, maxTemp, minTemp)}`,
+          )
+          .join(' ')
+      : '';
+  const heightPoints =
+    activeChartData.length > 0
+      ? activeChartData
+          .map(
+            (d, i) =>
+              `${getX(i, activeChartData.length)},${getY(d.height, maxHeight, minHeight)}`,
+          )
+          .join(' ')
+      : '';
+  const leafPoints =
+    activeChartData.length > 0
+      ? activeChartData
+          .map(
+            (d, i) =>
+              `${getX(i, activeChartData.length)},${getY(d.leaf, maxLeaf, minLeaf)}`,
+          )
+          .join(' ')
+      : '';
 
   return (
     <Flex gap="1.5em" flex="1" style={{ height: '100%', minHeight: 0 }}>
@@ -210,14 +274,10 @@ const DataAnalysisPage = () => {
         flex="1"
         style={{ minHeight: 0, minWidth: 0 }}
       >
+        {/* 수정된 FilterCard: 로직 연동 완료 */}
         <FilterCard>
-          <FilterGroup>
-            <FilterItem className="location-box">
-              <span className="label">관제 지점</span>
-              <span className="value">{selectedBranch}</span>
-            </FilterItem>
-            <div className="divider"></div>
-            <FilterItem className="batch-box">
+          <Flex align="center" justify="space-between" width="100%">
+            <div className="batch-selector">
               <span className="label">대상 작기</span>
               <select
                 value={selectedBatch}
@@ -226,11 +286,28 @@ const DataAnalysisPage = () => {
                   setTimeRange('week');
                 }}
               >
-                <option value="batch_1">작기 #01 (토마토 - 진행중)</option>
-                <option value="batch_2">작기 #02 (토마토 - 종료됨)</option>
+                {/* 🚨 드롭다운 목록을 batchList 상태값과 동기화 */}
+                {batchList.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name} - [{b.status}]
+                  </option>
+                ))}
               </select>
-            </FilterItem>
-          </FilterGroup>
+            </div>
+
+            <Flex gap="8px">
+              {/* 작기 종료 버튼 (선택된 작기가 진행중일 때만 활성화) */}
+              {isBatchActive && (
+                <BatchBtn className="danger" onClick={handleEndBatch}>
+                  작기 종료
+                </BatchBtn>
+              )}
+              {/* 새 작기 시작 버튼 (진행중인 작기가 있으면 내부 로직에서 에러 띄움) */}
+              <BatchBtn className="primary" onClick={handleStartBatch}>
+                + 새 작기 시작
+              </BatchBtn>
+            </Flex>
+          </Flex>
         </FilterCard>
 
         <TimelineCard>
@@ -243,9 +320,8 @@ const DataAnalysisPage = () => {
             <span className="filter-text">최신순 정렬</span>
           </Flex>
 
-          {/* 🚨 레이아웃 밀림 방지용 투명 스크롤 래퍼 */}
           <TimelineWrapper>
-            {currentData.issues.map((ev) => (
+            {currentData?.issues.map((ev) => (
               <TimelineItem key={ev.id} className={ev.type}>
                 <div className="time-col">
                   {ev.time.split(' ')[0]}
@@ -277,24 +353,24 @@ const DataAnalysisPage = () => {
           <MiniKpiCard>
             <div className="label">평균 온도 (오차 범위)</div>
             <div className="value">
-              {currentData.avgTemp}
+              {currentData?.avgTemp || 0}
               <span className="unit">°C</span>{' '}
-              <span className="error">±{currentData.tempError}</span>
+              <span className="error">±{currentData?.tempError || 0}</span>
             </div>
           </MiniKpiCard>
           <MiniKpiCard className="highlight">
             <div className="label">현재 측정 초장</div>
             <div className="value">
-              {currentData.currentHeight}
+              {currentData?.currentHeight || 0}
               <span className="unit">cm</span>
             </div>
           </MiniKpiCard>
           <MiniKpiCard>
             <div className="label">평균 습도 (오차 범위)</div>
             <div className="value">
-              {currentData.avgHumid}
+              {currentData?.avgHumid || 0}
               <span className="unit">%</span>{' '}
-              <span className="error">±{currentData.humidError}</span>
+              <span className="error">±{currentData?.humidError || 0}</span>
             </div>
           </MiniKpiCard>
         </KpiRow>
@@ -340,15 +416,17 @@ const DataAnalysisPage = () => {
                 <GraphArea>
                   <GridLine style={{ top: '10%' }} />{' '}
                   <GridLine style={{ top: '90%' }} />
-                  <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <polyline
-                      points={tempPoints}
-                      fill="none"
-                      stroke="#10b981"
-                      strokeWidth="2"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </svg>
+                  {tempPoints && (
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <polyline
+                        points={tempPoints}
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="2"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </svg>
+                  )}
                   {activeChartData.map((d, i) => (
                     <XLabel
                       key={`t-${i}`}
@@ -376,39 +454,41 @@ const DataAnalysisPage = () => {
                 <GraphArea>
                   <GridLine style={{ top: '10%' }} />{' '}
                   <GridLine style={{ top: '90%' }} />
-                  <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient
-                        id="growthGrad"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor="#3b82f6"
-                          stopOpacity="0.3"
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor="#3b82f6"
-                          stopOpacity="0"
-                        />
-                      </linearGradient>
-                    </defs>
-                    <polygon
-                      points={`0,100 ${heightPoints} 100,100`}
-                      fill="url(#growthGrad)"
-                    />
-                    <polyline
-                      points={heightPoints}
-                      fill="none"
-                      stroke="#3b82f6"
-                      strokeWidth="2"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </svg>
+                  {heightPoints && (
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient
+                          id="growthGrad"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="0%"
+                            stopColor="#3b82f6"
+                            stopOpacity="0.3"
+                          />
+                          <stop
+                            offset="100%"
+                            stopColor="#3b82f6"
+                            stopOpacity="0"
+                          />
+                        </linearGradient>
+                      </defs>
+                      <polygon
+                        points={`0,100 ${heightPoints} 100,100`}
+                        fill="url(#growthGrad)"
+                      />
+                      <polyline
+                        points={heightPoints}
+                        fill="none"
+                        stroke="#3b82f6"
+                        strokeWidth="2"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </svg>
+                  )}
                   {activeChartData.map((d, i) => (
                     <XLabel
                       key={`h-${i}`}
@@ -423,7 +503,7 @@ const DataAnalysisPage = () => {
 
             <div className="section-divider"></div>
 
-            {/* 🚨 3. 엽면적 차트 (신규 추가) */}
+            {/* 3. 엽면적 차트 */}
             <div className="chart-section">
               <div className="chart-mini-title">
                 수평 생장 및 엽면적 지수 (Leaf Area Trend)
@@ -436,33 +516,41 @@ const DataAnalysisPage = () => {
                 <GraphArea>
                   <GridLine style={{ top: '10%' }} />{' '}
                   <GridLine style={{ top: '90%' }} />
-                  <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient id="leafGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop
-                          offset="0%"
-                          stopColor="#f59e0b"
-                          stopOpacity="0.3"
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor="#f59e0b"
-                          stopOpacity="0"
-                        />
-                      </linearGradient>
-                    </defs>
-                    <polygon
-                      points={`0,100 ${leafPoints} 100,100`}
-                      fill="url(#leafGrad)"
-                    />
-                    <polyline
-                      points={leafPoints}
-                      fill="none"
-                      stroke="#f59e0b"
-                      strokeWidth="2"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </svg>
+                  {leafPoints && (
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient
+                          id="leafGrad"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="0%"
+                            stopColor="#f59e0b"
+                            stopOpacity="0.3"
+                          />
+                          <stop
+                            offset="100%"
+                            stopColor="#f59e0b"
+                            stopOpacity="0"
+                          />
+                        </linearGradient>
+                      </defs>
+                      <polygon
+                        points={`0,100 ${leafPoints} 100,100`}
+                        fill="url(#leafGrad)"
+                      />
+                      <polyline
+                        points={leafPoints}
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth="2"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </svg>
+                  )}
                   {activeChartData.map((d, i) => (
                     <XLabel
                       key={`l-${i}`}
@@ -486,51 +574,80 @@ export default DataAnalysisPage;
 // --- 🎨 스타일링 ---
 const FilterCard = styled(BaseCard)`
   flex: none;
-  flex-direction: row;
-  align-items: center;
-  padding: 1.2em 1.5em;
-  .divider {
-    width: 1px;
-    height: 35px;
-    background: #e2e8f0;
-    margin: 0 1.5em;
+  padding: 12px 15px;
+
+  .batch-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+
+    .label {
+      font-size: 0.8em;
+      font-weight: 800;
+      color: #64748b;
+      white-space: nowrap;
+    }
+
+    select {
+      width: 220px;
+      height: 32px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      padding: 0 10px;
+      border-radius: 6px;
+      font-size: 0.85em;
+      font-weight: 800;
+      color: #0f172a;
+      outline: none;
+      cursor: pointer;
+    }
   }
 `;
-const FilterGroup = styled.div`
+
+const BatchBtn = styled.button`
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 0.8em;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+  white-space: nowrap;
   display: flex;
   align-items: center;
-  width: 100%;
+  justify-content: center;
+
+  &.primary {
+    background: #0f172a;
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15);
+    &:hover {
+      background: #1e293b;
+    }
+  }
+  &.danger {
+    background: #fff;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    &:hover {
+      background: #fef2f2;
+    }
+  }
 `;
-const FilterItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  &.location-box {
-    width: 210px;
-  }
-  &.batch-box {
-    width: 210px;
-  }
-  .label {
-    font-size: 0.65em;
-    font-weight: 800;
-    color: #94a3b8;
-  }
-  .value {
-    font-size: 1.1em;
-    font-weight: 800;
-    color: #10b981;
-  }
-  select {
-    width: 100%;
-    border: 1px solid #e2e8f0;
-    background: #f8fafc;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 0.9em;
-    font-weight: 800;
-    color: #0f172a;
-    outline: none;
+
+const TimelineWrapper = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 2px;
+  min-height: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    background: transparent;
   }
 `;
 
@@ -544,27 +661,6 @@ const TimelineCard = styled(BaseCard)`
     font-weight: 800;
     color: #64748b;
   }
-`;
-
-/* 🚨 레이아웃 밀림 없는 투명/호버 스크롤 기술 적용 */
-const TimelineWrapper = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  overflow-y: overlay;
-  padding-right: 8px;
-  min-height: 0;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-    background: transparent;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: transparent;
-    border-radius: 6px;
-  }
-  &:hover::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.4);
-  } /* 마우스 올렸을 때만 스르륵 등장 */
 `;
 
 const TimelineItem = styled.div`
@@ -635,7 +731,7 @@ const TimelineItem = styled.div`
   }
   &.growth .content-col {
     border-left: 4px solid #3b82f6;
-  } /* 🚨 생육 일지용 파란선 추가 */
+  }
 `;
 
 const KpiRow = styled.div`
@@ -686,7 +782,6 @@ const AnalyticsCard = styled(BaseCard)`
   flex-direction: column;
   min-height: 0;
   padding: 1.5em;
-
   .analytics-header {
     display: flex;
     justify-content: space-between;
@@ -720,15 +815,12 @@ const AnalyticsCard = styled(BaseCard)`
       }
     }
   }
-
   .charts-wrapper {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
     gap: 8px;
-
-    /* 🚨 3개의 차트가 남은 공간을 예쁘게 나눠 쓰도록 설정 */
     .chart-section {
       flex: 1;
       display: flex;
