@@ -175,8 +175,7 @@ const DashboardPage = () => {
   );
 
   const currentData =
-    dashboardData[selectedBranch] ||
-    dashboardData['천안 본점 (종합관제센터)'];
+    dashboardData[selectedBranch] || dashboardData['천안 본점 (종합관제센터)'];
 
   const [liveSensors, setLiveSensors] = useState(currentData.sensors);
 
@@ -302,9 +301,26 @@ const DashboardPage = () => {
           </WeatherMiniCard>
 
           <ScoreMiniCard>
-            <div className="small-title">종합 생육 점수</div>
-            <div className="score">{currentData.score}</div>
-            <div className="phase-badge">{currentData.phase}</div>
+            <div className="score-top">
+              <div className="small-title">종합 생육 점수</div>
+              <div className="score-badge">매우 좋음</div>
+            </div>
+
+            <div className="score-row">
+              <div className="score-wrap">
+                <span className="score">{currentData.score}</span>
+                <span className="percent">%</span>
+              </div>
+              <div className="phase-badge">{currentData.phase}</div>
+            </div>
+
+            <div className="progress-track">
+              <div
+                className="progress-fill"
+                style={{ width: `${currentData.score}%` }}
+              />
+            </div>
+
             <div className="status">{currentData.status}</div>
           </ScoreMiniCard>
         </TopLeftGroup>
@@ -409,15 +425,16 @@ const DashboardPage = () => {
                       {sensor.trend}
                     </div>
                   </div>
-
                   <div className="middle">
-                    <span className="value">{sensor.value}</span>
-                    <span className="unit">{sensor.unit}</span>
-                  </div>
+                    <div className="left">
+                      <span className="value">{sensor.value}</span>
+                      <span className="unit">{sensor.unit}</span>
+                    </div>
 
-                  <div className="bottom">
-                    <span className="range">{sensor.range}</span>
-                    <span className="updated">{sensor.updatedAt}</span>
+                    <div className="right">
+                      <span className="range">{sensor.range}</span>
+                      <span className="updated">{sensor.updatedAt}</span>
+                    </div>
                   </div>
                 </SensorGridItem>
               ))}
@@ -459,8 +476,7 @@ const TopRow = styled.div`
   grid-template-columns:
     calc((100% - (var(--grid-gap) * 2)) * (1.5 / 3.35))
     calc(
-      100% - ((100% - (var(--grid-gap) * 2)) * (1.5 / 3.35)) -
-        var(--grid-gap)
+      100% - ((100% - (var(--grid-gap) * 2)) * (1.5 / 3.35)) - var(--grid-gap)
     );
   gap: var(--grid-gap);
   width: 100%;
@@ -617,26 +633,63 @@ const WeatherMiniCard = styled(BaseCard)`
 
 const ScoreMiniCard = styled(BaseCard)`
   min-height: 190px;
-  background: #eaf8f1;
- 
- 
-  // small-title = "종합 생육 점수" 
+  justify-content: center;
+  background: linear-gradient(180deg, #ecfdf5 0%, #dff7eb 100%);
+  border: 1px solid rgba(16, 185, 129, 0.12);
+  padding: 1.15em 1.1em;
+
+  .score-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.9em;
+  }
+
   .small-title {
     font-size: 0.92em;
     font-weight: 800;
-    color: #10b981;
+    color: #0f172a;
     letter-spacing: -0.02em;
-    margin-bottom: 4em;
   }
 
-  // scroe = 96
-  .score {
-    font-size: 2rem;
-    font-weight: 700;
+  .score-badge {
+    font-size: 0.68em;
+    font-weight: 800;
+    color: #059669;
+    background: rgba(16, 185, 129, 0.12);
+    padding: 5px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .score-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 0.8em;
+    margin-bottom: 0.8em;
+  }
+
+  .score-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
     line-height: 1;
+  }
+
+  .score {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #059669;
+    letter-spacing: -0.05em;
+    line-height: 1;
+  }
+
+  .percent {
+    font-size: 1rem;
+    font-weight: 800;
     color: #10b981;
-    letter-spacing: -0.03em;
-    margin-bottom: 0.5em;
+    line-height: 1;
   }
 
   .phase-badge {
@@ -645,15 +698,30 @@ const ScoreMiniCard = styled(BaseCard)`
     width: fit-content;
     background: #10b981;
     color: #ffffff;
-    padding: 5px 10px;
+    padding: 6px 11px;
     border-radius: 999px;
-    font-size: 0.75em;
+    font-size: 0.74em;
     font-weight: 800;
-    margin-bottom: 0.7em;
+    white-space: nowrap;
+  }
+
+  .progress-track {
+    width: 100%;
+    height: 10px;
+    background: rgba(15, 23, 42, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 0.85em;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
   }
 
   .status {
-    font-size: 0.84em;
+    font-size: 0.82em;
     font-weight: 700;
     line-height: 1.45;
     color: #166534;
@@ -825,33 +893,27 @@ const SensorsGroupCard = styled(BaseCard)`
 
 const SensorGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.7em;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(6, 1fr); // 6칸 고정
+  gap: 0.55em;
+
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  padding-right: 0.3em;
-  align-content: start;
-
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border-radius: 4px;
-  }
+  height: 100%; // 부모 높이 꽉 채움
 `;
 
 const SensorGridItem = styled.div`
   background-color: rgba(241, 245, 249, 0.6);
   border-radius: 16px;
-  padding: 0.9em 0.9em;
+  padding: 0.6em 0.9em;
+
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center; // 카드 내부 내용 세로 가운데
+  gap: 2px;
+
   min-width: 0;
-  min-height: 118px;
+  min-height: 0;
   transition: background 0.3s ease;
 
   &:hover {
@@ -861,16 +923,15 @@ const SensorGridItem = styled.div`
   .top {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    gap: 0.4em;
-    margin-bottom: 0.45em;
+    align-items: center;
+    margin: 0;
   }
 
   .label {
     font-size: 0.68em;
     font-weight: 800;
     color: #64748b;
-    line-height: 1.35;
+    line-height: 1.2;
     letter-spacing: -0.01em;
     word-break: keep-all;
   }
@@ -901,43 +962,41 @@ const SensorGridItem = styled.div`
 
   .middle {
     display: flex;
-    align-items: baseline;
-    gap: 4px;
-    margin-bottom: 0.45em;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+
+    .left {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
 
     .value {
       font-size: 1.2em;
       font-weight: 800;
       color: #0f172a;
-      letter-spacing: -0.02em;
       line-height: 1;
     }
 
     .unit {
-      font-size: 0.72em;
+      font-size: 0.75em;
+      color: #94a3b8;
+      line-height: 1;
+    }
+
+    .right {
+      display: flex;
+      gap: 6px;
+      font-size: 0.65em;
       font-weight: 700;
       color: #94a3b8;
+      line-height: 1;
     }
-  }
 
-  .bottom {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2em;
-  }
-
-  .range {
-    font-size: 0.66em;
-    color: #64748b;
-    font-weight: 700;
-    line-height: 1.3;
-    word-break: keep-all;
-  }
-
-  .updated {
-    font-size: 0.65em;
-    color: #94a3b8;
-    font-weight: 700;
+    .range {
+      color: #64748b;
+    }
   }
 `;
 
