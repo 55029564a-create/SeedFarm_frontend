@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom'; // 🚨 1. 페이지 이동을 위한 훅 추가!
 import { PageContainer } from './Styles/AdminShared';
+import { login } from "../../Api/auth";
 
 const LoginPage = () => {
   const navigate = useNavigate(); // 🚨 2. 네비게이트 함수 초기화!
@@ -17,25 +18,38 @@ const LoginPage = () => {
   };
 
   // 🚨 3. 폼 제출 핸들러 (가짜 로그인 & 페이지 이동 로직 추가!)
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 빈칸 방지
     if (!loginInputs.id || !loginInputs.password) {
       alert('아이디와 비밀번호를 모두 입력해주세요.');
       return;
     }
 
-    console.log('Login Attempt:', loginInputs, 'Remember ID:', rememberMe);
+    try {
+      // 🔥 백엔드 로그인 호출
+      const token = await login({
+        email: loginInputs.id, // 백엔드가 email로 받음
+        password: loginInputs.password,
+      });
 
-    // (임시) 프론트엔드 테스트용 가짜 토큰 저장
-    localStorage.setItem('adminToken', 'dummy-token-123');
-    if (rememberMe) localStorage.setItem('savedId', loginInputs.id);
+      // 토큰 저장
+      localStorage.setItem('access_token', token.access_token);
+      localStorage.setItem('refresh_token', token.refresh_token);
 
-    // 🔥 디바이스 기준 분기
-    const isField = window.innerWidth <= 1024;
+      if (rememberMe) {
+        localStorage.setItem('savedId', loginInputs.id);
+      }
 
-    navigate(isField ? '/field' : '/dashboard');
+      console.log("로그인 성공");
+
+      const isField = window.innerWidth <= 1024;
+      navigate(isField ? '/field' : '/dashboard');
+
+    } catch (err) {
+      console.error(err);
+      alert('로그인 실패: 아이디 또는 비밀번호 확인');
+    }
   };
 
   return (
