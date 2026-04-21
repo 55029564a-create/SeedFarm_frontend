@@ -4,7 +4,7 @@ import { useOutletContext } from 'react-router-dom';
 import { BaseCard, CardTitle, Flex } from './Styles/AdminShared';
 
 const DataAnalysisPage = () => {
-  const { selectedBranch } = useOutletContext();
+  const { selectedBranch } = useOutletContext(); // AdminLayout에서 보낸 A동, B동 정보 받기
   const [selectedBatch, setSelectedBatch] = useState('batch_1');
   const [timeRange, setTimeRange] = useState('week');
 
@@ -13,7 +13,6 @@ const DataAnalysisPage = () => {
     { id: 'batch_2', name: '작기 #02 (토마토)', status: '종료됨' },
   ]);
 
-  // 🚨 1. 데이터 업그레이드: 외부 온도(extTemp) 추가 및 데이터 밀도 유지
   const [batchDataStore, setBatchDataStore] = useState({
     batch_1: {
       avgTemp: 23.9,
@@ -201,6 +200,8 @@ const DataAnalysisPage = () => {
       currentHeight: 18.4,
       targetHeight: 18.0,
       charts: {
+        day: [],
+        month: [],
         week: [
           {
             label: '03-15',
@@ -241,10 +242,51 @@ const DataAnalysisPage = () => {
     },
   });
 
+  // 🚨 형님 파일에 누락되어 있던 A/B동 가중치 계산 로직 복구
+  const branchModifiers = {
+    'A동 (표준 생육실)': { height: 1.0, temp: 0, leaf: 1.0 },
+    'B동 (성장 지연실)': { height: 0.8, temp: -2.5, leaf: 0.85 }, // B동은 성장이 느림
+    'C동 (성장 촉진실)': { height: 1.15, temp: +1.5, leaf: 1.1 }, // C동은 성장이 빠름
+  };
+
+  const currentData = useMemo(() => {
+    const rawData = batchDataStore[selectedBatch];
+    if (!rawData) return null;
+
+    // AdminLayout에서 받아온 이름과 정확히 매칭!
+    const modifier = branchModifiers[selectedBranch] || {
+      height: 1.0,
+      temp: 0,
+      leaf: 1.0,
+    };
+    const modified = JSON.parse(JSON.stringify(rawData)); // 원본 보호 깊은 복사
+
+    modified.currentHeight = (modified.currentHeight * modifier.height).toFixed(
+      1,
+    );
+    modified.avgTemp = (parseFloat(modified.avgTemp) + modifier.temp).toFixed(
+      1,
+    );
+
+    Object.keys(modified.charts).forEach((range) => {
+      modified.charts[range] = modified.charts[range].map((d) => ({
+        ...d,
+        height: (d.height * modifier.height).toFixed(1),
+        temp: (parseFloat(d.temp) + modifier.temp).toFixed(1),
+        leaf: (d.leaf * modifier.leaf).toFixed(1),
+      }));
+    });
+
+    return modified;
+  }, [selectedBatch, batchDataStore, selectedBranch]);
+
+  const activeChartData = currentData?.charts[timeRange] || [];
+  const isBatchActive =
+    batchList.find((b) => b.id === selectedBatch)?.status === '진행중';
+
   const handleStartBatch = () => {
-    const hasActive = batchList.some((b) => b.status === '진행중');
-    if (hasActive) {
-      alert('오류: 이미 진행 중인 작기가 있습니다.');
+    if (batchList.some((b) => b.status === '진행중')) {
+      alert('이미 진행 중인 작기가 있습니다.');
       return;
     }
     if (!window.confirm('새로운 작기를 생성하시겠습니까?')) return;
@@ -283,30 +325,21 @@ const DataAnalysisPage = () => {
     );
   };
 
-  const currentData = useMemo(
-    () => batchDataStore[selectedBatch],
-    [selectedBatch, batchDataStore],
-  );
-  const activeChartData = currentData?.charts[timeRange] || [];
-  const isBatchActive =
-    batchList.find((b) => b.id === selectedBatch)?.status === '진행중';
-
   const heightDiff = currentData
     ? (currentData.currentHeight - currentData.targetHeight).toFixed(1)
     : 0;
   const isNormal = heightDiff >= -1.0;
 
   const maxTemp = 40;
-  const minTemp = 0; // 외부 온도 변동을 위해 스케일 확장
+  const minTemp = 0;
   const maxHeight = 100;
   const minHeight = 0;
-  const maxLeaf = 50;
+  const maxLeaf = 60;
   const minLeaf = 0;
 
   const getX = (index, total) => (total > 1 ? (index / (total - 1)) * 100 : 0);
   const getY = (val, max, min = 0) => 90 - ((val - min) / (max - min)) * 80;
 
-  // 🚨 그래프 선 데이터 생성
   const tempPoints = activeChartData
     .map(
       (d, i) =>
@@ -346,23 +379,26 @@ const DataAnalysisPage = () => {
         flex="1"
         style={{ minHeight: 0, minWidth: 0 }}
       >
+        {/* 🚨 수정된 상단 필터/작기 선택 카드 */}
         <FilterCard>
           <Flex align="center" justify="space-between" width="100%">
             <div className="batch-selector">
               <span className="label">대상 작기</span>
-              <select
-                value={selectedBatch}
-                onChange={(e) => {
-                  setSelectedBatch(e.target.value);
-                  setTimeRange('week');
-                }}
-              >
-                {batchList.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name} - [{b.status}]
-                  </option>
-                ))}
-              </select>
+              <div className="select-wrapper">
+                <select
+                  value={selectedBatch}
+                  onChange={(e) => {
+                    setSelectedBatch(e.target.value);
+                    setTimeRange('week');
+                  }}
+                >
+                  {batchList.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name} - [{b.status}]
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <Flex gap="8px">
               {isBatchActive && (
@@ -439,7 +475,9 @@ const DataAnalysisPage = () => {
               </span>
               {currentData && (
                 <StatusBadge className={isNormal ? 'normal' : 'warning'}>
-                  {isNormal ? '정상 🟢' : `${Math.abs(heightDiff)}cm 미달 🔻`}
+                  {isNormal
+                    ? '정상 🟢'
+                    : `${Math.abs(heightDiff).toFixed(1)}cm 편차 🔻`}
                 </StatusBadge>
               )}
             </Flex>
@@ -488,7 +526,6 @@ const DataAnalysisPage = () => {
             </div>
           </div>
           <div className="charts-wrapper">
-            {/* 🚨 1번 차트: 내/외부 온도 및 적정 임계치 제어 방어 증명 */}
             <div className="chart-section">
               <Flex justify="space-between" align="center" width="100%">
                 <div className="chart-mini-title">
@@ -510,7 +547,6 @@ const DataAnalysisPage = () => {
                 <GraphArea>
                   <GridLine style={{ top: '10%' }} />{' '}
                   <GridLine style={{ top: '90%' }} />
-                  {/* 적정 온도 임계치 배경(18도~25도 영역) */}
                   <div
                     style={{
                       position: 'absolute',
@@ -556,7 +592,6 @@ const DataAnalysisPage = () => {
                       />
                     </svg>
                   )}
-                  {/* 🚨 호버 툴팁 적용 */}
                   {activeChartData.map((d, i) => (
                     <HoverZone
                       key={`t-hover-${i}`}
@@ -588,8 +623,6 @@ const DataAnalysisPage = () => {
               </ChartContainer>
             </div>
             <div className="section-divider"></div>
-
-            {/* 2번 차트: 수직 생장 분석 */}
             <div className="chart-section">
               <Flex justify="space-between" align="center" width="100%">
                 <div className="chart-mini-title">
@@ -634,7 +667,6 @@ const DataAnalysisPage = () => {
                       />
                     </svg>
                   )}
-                  {/* 🚨 호버 툴팁 적용 */}
                   {activeChartData.map((d, i) => (
                     <HoverZone
                       key={`h-hover-${i}`}
@@ -666,8 +698,6 @@ const DataAnalysisPage = () => {
               </ChartContainer>
             </div>
             <div className="section-divider"></div>
-
-            {/* 3번 차트: 엽면적 지수 */}
             <div className="chart-section">
               <div className="chart-mini-title">
                 수평 생장 및 엽면적 지수 (Leaf Area Trend)
@@ -693,7 +723,6 @@ const DataAnalysisPage = () => {
                       />
                     </svg>
                   )}
-                  {/* 🚨 호버 툴팁 적용 */}
                   {activeChartData.map((d, i) => (
                     <HoverZone
                       key={`l-hover-${i}`}
@@ -707,7 +736,7 @@ const DataAnalysisPage = () => {
                       <div className="tooltip">
                         <b>{d.label}</b>
                         <br />
-                        엽면적 지수: {d.leaf}
+                        엽면적: {d.leaf}
                       </div>
                     </HoverZone>
                   ))}
@@ -731,7 +760,7 @@ const DataAnalysisPage = () => {
 
 export default DataAnalysisPage;
 
-// --- 🎨 스타일링 ---
+// --- 🎨 스타일링 (드롭다운 디자인 통일 완료) ---
 const FilterCard = styled(BaseCard)`
   flex: none;
   height: 110px;
@@ -741,30 +770,53 @@ const FilterCard = styled(BaseCard)`
   .batch-selector {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     flex: 1;
     .label {
       font-size: 0.8em;
       font-weight: 800;
       color: #64748b;
+      white-space: nowrap;
     }
-    select {
+    /* 🚨 대상 작기 드롭다운을 어드민 헤더와 완벽하게 동일한 디자인으로 수정 */
+    .select-wrapper {
+      position: relative;
       width: 220px;
-      height: 32px;
-      border: 1px solid #e2e8f0;
-      background: #f8fafc;
-      padding: 0 10px;
+      height: 34px;
+    }
+    .select-wrapper select {
+      width: 100%;
+      height: 100%;
+      appearance: none;
+      background: #fff;
+      border: 1px solid #cbd5e1;
       border-radius: 6px;
+      padding: 0 30px 0 12px;
       font-size: 0.85em;
-      font-weight: 800;
-      color: #0f172a;
+      font-weight: 700;
+      color: #1e293b;
       outline: none;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .select-wrapper select:hover {
+      background-color: #f1f5f9;
+    }
+    .select-wrapper::after {
+      content: '▾';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 1.1em;
+      pointer-events: none;
     }
   }
 `;
 
 const BatchBtn = styled.button`
-  height: 32px;
+  height: 34px;
   padding: 0 14px;
   border-radius: 6px;
   font-weight: 800;
@@ -1078,7 +1130,6 @@ const XLabel = styled.span`
   color: #94a3b8;
 `;
 
-/* 🚨 신규: 마우스 호버 시 나타나는 인터랙티브 툴팁 & 포인트 */
 const HoverZone = styled.div`
   position: absolute;
   width: 16px;
@@ -1089,7 +1140,6 @@ const HoverZone = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-
   .dot {
     width: 8px;
     height: 8px;
@@ -1100,7 +1150,6 @@ const HoverZone = styled.div`
     transition: 0.2s;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
-
   .tooltip {
     position: absolute;
     bottom: 20px;
@@ -1124,8 +1173,6 @@ const HoverZone = styled.div`
       font-weight: 800;
     }
   }
-
-  /* 마우스 올렸을 때 점수와 툴팁 뿅 나타남 */
   &:hover .dot {
     opacity: 1;
     transform: scale(1.2);

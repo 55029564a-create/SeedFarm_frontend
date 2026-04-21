@@ -15,34 +15,33 @@ const AdminLayout = () => {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isBranchOpen, setIsBranchOpen] = useState(false);
 
-  // 📍 지점 명칭을 실제 운영 센터 느낌으로 변경
+  // 🚨 지점 명칭을 같은 건물 내 '동(방)' 개념으로 완벽 동기화
   const branches = [
-    '천안 본점 (종합관제센터)',
-    '천안 제2센터 (육묘 전용)',
-    '천안 제3센터 (연구/R&D)',
-    '천안 제4센터 (지하 생산단지)',
+    'A동 (표준 생육실)',
+    'B동 (성장 지연실)',
+    'C동 (성장 촉진실)',
   ];
 
   const [selectedBranch, setSelectedBranch] = useState(branches[0]);
 
-  // 🔔 알림 내용을 실무형 텍스트로 보강
+  // 🔔 알림 내용도 동 개념에 맞게 보강
   const alerts = [
     {
       id: 1,
       type: 'warning',
-      text: '천안 제1센터: 지하 2층 내부 온도 임계치(28°C) 초과',
+      text: 'B동: 내부 온도 임계치(18°C) 미달 지속. 난방 점검 필요.',
       time: '10분 전',
     },
     {
       id: 2,
       type: 'action',
-      text: '천안 제3센터: 습도 최적화를 위한 제습 시스템 자동 가동',
+      text: 'C동: 습도 최적화를 위한 환기 팬 자동 가동',
       time: '1시간 전',
     },
     {
       id: 3,
       type: 'normal',
-      text: '전 지점: 주간 생육 리포트 및 전력 분석 보고서 생성 완료',
+      text: '전 구역: 주간 생육 리포트 및 AI 편차 분석 완료',
       time: '2시간 전',
     },
   ];
@@ -70,11 +69,11 @@ const AdminLayout = () => {
         >
           <div className="header-title">{title}</div>
 
+          {/* 🚨 버튼들의 수직 중앙 정렬을 위해 alignItems: 'center' 추가 */}
           <div
             className="header-actions"
-            style={{ display: 'flex', gap: '1em' }}
+            style={{ display: 'flex', gap: '1em', alignItems: 'center' }}
           >
-            {/* 🔔 관제 알림 드롭다운 */}
             <DropdownWrapper>
               <FixedHeaderBtn
                 className="alert"
@@ -99,7 +98,6 @@ const AdminLayout = () => {
               )}
             </DropdownWrapper>
 
-            {/* 📍 관리 지점 선택 드롭다운 */}
             <DropdownWrapper>
               <FixedHeaderBtn
                 onClick={() => {
@@ -132,6 +130,7 @@ const AdminLayout = () => {
         </TopHeader>
 
         <ContentArea>
+          {/* 선택된 동(방) 정보를 자식 컴포넌트(DataAnalysisPage)로 전달 */}
           <Outlet context={{ selectedBranch }} />
         </ContentArea>
       </MainWrapper>
@@ -142,7 +141,6 @@ const AdminLayout = () => {
 export default AdminLayout;
 
 // --- AdminLayout 전용 Styled Components ---
-
 const ContentArea = styled.div`
   flex: 1;
   display: flex;
@@ -150,33 +148,31 @@ const ContentArea = styled.div`
   min-height: 0;
 `;
 
-// 🚀 새롭게 추가된 '크기 고정형' 버튼 스타일
+// 🚀 높이 단차 해결: 42px로 강제 고정 및 패딩 밸런스 조절
 const FixedHeaderBtn = styled(HeaderBtn)`
-  /* 버튼의 최소 너비를 고정해서 글자가 짧아져도 줄어들지 않게 방어 */
-  min-width: 220px; /* 지점명이 길어질 수 있으니 너비를 좀 더 확보 */
+  min-width: 220px;
+  height: 42px; /* 🚨 알림 버튼과 드롭다운 높이 칼각 일치 */
   display: flex;
   justify-content: space-between;
   align-items: center;
-
+  padding: 0 1.2em;
+  box-sizing: border-box;
   .btn-text {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: 700;
   }
-
   .btn-arrow {
     margin-left: 0.5em;
     color: #94a3b8;
   }
-
   &.alert {
     min-width: 120px;
     justify-content: center;
   }
 `;
 
-// 드롭다운 UI 스타일
 const DropdownWrapper = styled.div`
   position: relative;
 `;
@@ -192,7 +188,6 @@ const DropdownMenu = styled.div`
   border: 1px solid #e2e8f0;
   overflow: hidden;
   animation: slideDown 0.2s ease-out;
-
   @keyframes slideDown {
     from {
       opacity: 0;
@@ -203,9 +198,8 @@ const DropdownMenu = styled.div`
       transform: translateY(0);
     }
   }
-
   &.alert-menu {
-    min-width: 320px; /* 알림 텍스트가 길어질 수 있으니 넓게 확보 */
+    min-width: 320px;
     .menu-header {
       padding: 1em;
       font-weight: 800;
@@ -241,7 +235,6 @@ const DropdownMenu = styled.div`
       }
     }
   }
-
   .sector-item {
     padding: 1em 1.5em;
     font-size: 0.95em;
