@@ -3,14 +3,59 @@ import styled from 'styled-components';
 import { useOutletContext } from 'react-router-dom';
 import { CardTitle } from './Styles/AdminShared';
 
+// 🚨 프론트엔드 전용: 퍼센트(%) 기반 생육 데이터 자동 계산 알고리즘
+const getGrowthByPercent = (percent, phase) => {
+  // 1. 스마트팜 방울토마토 실무 기준 9단계 표준 생육 가이드라인 (100% 기준치)
+  const standardDB = {
+    '육묘기 🌱': { height: 25.0, leaf: 6, length: 5.5, width: 4.5 },
+    '정식기 🪴': { height: 48.0, leaf: 9, length: 8.0, width: 6.5 },
+    '초기 활착기 🌿': { height: 75.0, leaf: 12, length: 10.5, width: 8.5 },
+    '영양 생장기 🍃': { height: 105.0, leaf: 16, length: 13.0, width: 11.0 },
+    '1화방 개화기 🌼': { height: 135.0, leaf: 19, length: 15.0, width: 12.5 },
+    '2~3화방 개화기 🌸': { height: 165.0, leaf: 22, length: 16.5, width: 13.5 },
+    '과실 비대기 🍏': { height: 195.0, leaf: 25, length: 17.5, width: 14.5 },
+    '첫 수확기 🍅': { height: 225.0, leaf: 28, length: 18.0, width: 15.0 },
+    '연속 수확기 🔄': { height: 260.0, leaf: 30, length: 18.5, width: 15.5 },
+  };
+
+  // 현재 단계의 100% 표준치 가져오기 (매칭 안되면 기본값 사용)
+  const target = standardDB[phase] || standardDB['1화방 개화기 🌼'];
+
+  // 2. 퍼센트(%)를 비율(ratio)로 변환하여 실측치 역산 (예: 96% -> 0.96 곱하기)
+  const ratio = percent / 100;
+
+  return {
+    height: {
+      value: +(target.height * ratio).toFixed(1),
+      target: target.height,
+      unit: 'cm',
+    },
+    leafCount: {
+      value: Math.round(target.leaf * ratio),
+      target: target.leaf,
+      unit: '개',
+    },
+    leafLength: {
+      value: +(target.length * ratio).toFixed(1),
+      target: target.length,
+      unit: 'cm',
+    },
+    leafWidth: {
+      value: +(target.width * ratio).toFixed(1),
+      target: target.width,
+      unit: 'cm',
+    },
+  };
+};
+
 const DashboardPage = () => {
   const { selectedBranch } = useOutletContext();
 
   const dashboardData = useMemo(
     () => ({
       '천안 본점 (종합관제센터)': {
-        score: 96,
-        phase: '개화기 🌸',
+        percent: 96, // 🚨 점수가 아닌 퍼센트(%) 개념으로 적용
+        phase: '1화방 개화기 🌼',
         status: '작물 활력도 최상 (전주 대비 2% 상승)',
         sensors: [
           {
@@ -56,12 +101,8 @@ const DashboardPage = () => {
             status: 'stable',
           },
         ],
-        growth: {
-          height: '124.5 cm',
-          leafCount: '18 개',
-          leafLength: '15.2 cm',
-          leafWidth: '12.0 cm',
-        },
+        // 🚨 하드코딩 삭제! 96%와 '1화방 개화기'를 넣으면 자동으로 편차 및 실측치 계산
+        growth: getGrowthByPercent(96, '1화방 개화기 🌼'),
         logs: [
           {
             id: 1,
@@ -98,8 +139,8 @@ const DashboardPage = () => {
         ],
       },
       '천안 제2센터 (육묘 전용)': {
-        score: 88,
-        phase: '정식기 🌱',
+        percent: 88, // 🚨 퍼센트 적용
+        phase: '정식기 🪴',
         status: '초기 활착 안정적 진행 중',
         sensors: [
           {
@@ -145,12 +186,8 @@ const DashboardPage = () => {
             status: 'stable',
           },
         ],
-        growth: {
-          height: '45.0 cm',
-          leafCount: '8 개',
-          leafLength: '8.5 cm',
-          leafWidth: '6.0 cm',
-        },
+        // 🚨 88%와 '정식기'를 넣어서 육묘장에 맞는 데이터로 자동 계산
+        growth: getGrowthByPercent(88, '정식기 🪴'),
         logs: [
           {
             id: 1,
@@ -176,7 +213,6 @@ const DashboardPage = () => {
 
   const currentData =
     dashboardData[selectedBranch] || dashboardData['천안 본점 (종합관제센터)'];
-
   const [liveSensors, setLiveSensors] = useState(currentData.sensors);
 
   const weatherData = {
@@ -189,7 +225,6 @@ const DashboardPage = () => {
 
   useEffect(() => {
     setLiveSensors(currentData.sensors);
-
     const interval = setInterval(() => {
       setLiveSensors((prev) =>
         prev.map((s) => {
@@ -204,7 +239,6 @@ const DashboardPage = () => {
         }),
       );
     }, 3000);
-
     return () => clearInterval(interval);
   }, [selectedBranch, currentData]);
 
@@ -230,46 +264,53 @@ const DashboardPage = () => {
   ];
 
   const sensorMetaMap = {
-    '내부 온도': {
-      range: '정상 22~26°C',
-      updatedAt: '방금 전',
-    },
-    '내부 습도': {
-      range: '정상 55~70%',
-      updatedAt: '방금 전',
-    },
-    'CO2 농도': {
-      range: '정상 350~500 ppm',
-      updatedAt: '1분 전',
-    },
-    '광합성 광량': {
-      range: '기준 250~400 PPFD',
-      updatedAt: '1분 전',
-    },
-    '토양 양액 농도(EC)': {
-      range: '정상 1.0~1.5 dS/m',
-      updatedAt: '방금 전',
-    },
-    '토양 산도(pH)': {
-      range: '정상 5.5~6.5 pH',
-      updatedAt: '방금 전',
-    },
+    '내부 온도': { range: '정상 22~26°C', updatedAt: '방금 전' },
+    '내부 습도': { range: '정상 55~70%', updatedAt: '방금 전' },
+    'CO2 농도': { range: '정상 350~500 ppm', updatedAt: '1분 전' },
+    '광합성 광량': { range: '기준 250~400 PPFD', updatedAt: '1분 전' },
+    '토양 양액 농도(EC)': { range: '정상 1.0~1.5 dS/m', updatedAt: '방금 전' },
+    '토양 산도(pH)': { range: '정상 5.5~6.5 pH', updatedAt: '방금 전' },
   };
 
-  const mainSensorCards = [
-    liveSensors.find((s) => s.label === '내부 온도'),
-    liveSensors.find((s) => s.label === '내부 습도'),
-    liveSensors.find((s) => s.label === 'CO2 농도'),
-    liveSensors.find((s) => s.label === '광합성 광량'),
-    liveSensors.find((s) => s.label === '토양 양액 농도(EC)'),
-    liveSensors.find((s) => s.label === '토양 산도(pH)'),
-  ]
-    .filter(Boolean)
-    .map((sensor) => ({
-      ...sensor,
-      range: sensorMetaMap[sensor.label]?.range || '',
-      updatedAt: sensorMetaMap[sensor.label]?.updatedAt || '방금 전',
-    }));
+  const mainSensorCards = liveSensors.map((sensor) => ({
+    ...sensor,
+    range: sensorMetaMap[sensor.label]?.range || '',
+    updatedAt: sensorMetaMap[sensor.label]?.updatedAt || '방금 전',
+  }));
+
+  const renderGrowthItem = (label, data) => {
+    const diff = (data.value - data.target).toFixed(1);
+    const isNormal = diff >= -0.5 && diff <= 0.5;
+    const isUnder = diff < -0.5;
+
+    let badgeClass = 'normal';
+    let badgeText = '정상 🟢';
+
+    if (isUnder) {
+      badgeClass = 'warning';
+      badgeText = `${Math.abs(diff)}${data.unit} 미달 🔻`;
+    } else if (diff > 0.5) {
+      badgeClass = 'good';
+      badgeText = `+${diff}${data.unit} 초과 🔵`;
+    }
+
+    return (
+      <div className="g-item">
+        <div className="g-header">
+          <span className="l">{label}</span>
+          <span className={`diff-badge ${badgeClass}`}>{badgeText}</span>
+        </div>
+        <div className="g-body">
+          <span className="v">{data.value}</span>
+          <span className="u">{data.unit}</span>
+          <span className="std">
+            표준 {data.target}
+            {data.unit}
+          </span>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <PageGrid>
@@ -280,7 +321,6 @@ const DashboardPage = () => {
               <div className="small-title">외부 기상 관측</div>
               <div className="small-link">참고 지표</div>
             </div>
-
             <div className="weather-main">
               <div className="weather-icon">{weatherData.icon}</div>
               <div className="weather-info">
@@ -293,7 +333,6 @@ const DashboardPage = () => {
                 </div>
               </div>
             </div>
-
             <div className="bottom-row">
               <span className="badge">대기: {weatherData.aqi}</span>
               <span className="muted">광주/환기 연동 대기</span>
@@ -302,48 +341,36 @@ const DashboardPage = () => {
 
           <ScoreMiniCard>
             <div className="score-top">
-              <div className="small-title">종합 생육 점수</div>
+              {/* 🚨 글씨 수정: 점수 -> 진행도 */}
+              <div className="small-title">종합 생육 진행도</div>
               <div className="score-badge">매우 좋음</div>
             </div>
-
             <div className="score-row">
               <div className="score-wrap">
-                <span className="score">{currentData.score}</span>
+                {/* 🚨 퍼센트 데이터 출력 */}
+                <span className="score">{currentData.percent}</span>
                 <span className="percent">%</span>
               </div>
               <div className="phase-badge">{currentData.phase}</div>
             </div>
-
             <div className="progress-track">
+              {/* 🚨 게이지바 길이 퍼센트에 연동 */}
               <div
                 className="progress-fill"
-                style={{ width: `${currentData.score}%` }}
+                style={{ width: `${currentData.percent}%` }}
               />
             </div>
-
             <div className="status">{currentData.status}</div>
           </ScoreMiniCard>
         </TopLeftGroup>
 
         <GrowthCard>
-          <CardTitle>식물 생육 지표</CardTitle>
+          <CardTitle>식물 생육 지표 (AI 편차 분석)</CardTitle>
           <GrowthGrid>
-            <div className="g-item">
-              <span className="l">초장 (세로 높이)</span>
-              <span className="v">{currentData.growth.height}</span>
-            </div>
-            <div className="g-item">
-              <span className="l">엽수 (잎 개수)</span>
-              <span className="v">{currentData.growth.leafCount}</span>
-            </div>
-            <div className="g-item">
-              <span className="l">엽장 (잎 길이)</span>
-              <span className="v">{currentData.growth.leafLength}</span>
-            </div>
-            <div className="g-item">
-              <span className="l">엽폭 (잎 너비)</span>
-              <span className="v">{currentData.growth.leafWidth}</span>
-            </div>
+            {renderGrowthItem('초장 (세로 높이)', currentData.growth.height)}
+            {renderGrowthItem('엽수 (잎 개수)', currentData.growth.leafCount)}
+            {renderGrowthItem('엽장 (잎 길이)', currentData.growth.leafLength)}
+            {renderGrowthItem('엽폭 (잎 너비)', currentData.growth.leafWidth)}
           </GrowthGrid>
         </GrowthCard>
       </TopRow>
@@ -430,7 +457,6 @@ const DashboardPage = () => {
                       <span className="value">{sensor.value}</span>
                       <span className="unit">{sensor.unit}</span>
                     </div>
-
                     <div className="right">
                       <span className="range">{sensor.range}</span>
                       <span className="updated">{sensor.updatedAt}</span>
@@ -448,6 +474,8 @@ const DashboardPage = () => {
 
 export default DashboardPage;
 
+// --- 하단 Styled Components 부분 ---
+
 const BaseCard = styled.div`
   background: #ffffff;
   border-radius: 20px;
@@ -462,7 +490,6 @@ const BaseCard = styled.div`
 
 const PageGrid = styled.div`
   --grid-gap: 1.1em;
-
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -480,7 +507,6 @@ const TopRow = styled.div`
     );
   gap: var(--grid-gap);
   width: 100%;
-
   @media (max-width: 1200px) {
     grid-template-columns: 1fr;
   }
@@ -491,7 +517,6 @@ const TopLeftGroup = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: var(--grid-gap);
   min-width: 0;
-
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
@@ -506,7 +531,6 @@ const BottomRow = styled.div`
   min-height: 610px;
   max-height: 610px;
   overflow: hidden;
-
   @media (max-width: 1200px) {
     grid-template-columns: 1fr;
     height: auto;
@@ -524,7 +548,6 @@ const CenterColumn = styled.div`
   min-height: 610px;
   max-height: 610px;
   overflow: hidden;
-
   @media (max-width: 1200px) {
     height: auto;
     min-height: unset;
@@ -540,7 +563,6 @@ const RightColumn = styled.div`
   min-height: 610px;
   max-height: 610px;
   overflow: hidden;
-
   @media (max-width: 1200px) {
     height: auto;
     min-height: unset;
@@ -551,61 +573,51 @@ const RightColumn = styled.div`
 const WeatherMiniCard = styled(BaseCard)`
   justify-content: space-between;
   min-height: 190px;
-
   .header-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.9em;
   }
-
   .small-title {
     font-size: 0.92em;
     font-weight: 800;
     color: #0f172a;
     letter-spacing: -0.02em;
   }
-
   .small-link {
     font-size: 0.75em;
     font-weight: 700;
     color: #94a3b8;
   }
-
   .weather-main {
     display: flex;
     align-items: center;
     gap: 0.9em;
   }
-
   .weather-icon {
     font-size: 2em;
   }
-
   .weather-info {
     display: flex;
     flex-direction: column;
   }
-
   .temp {
     font-size: 2em;
     font-weight: 800;
     color: #0f172a;
     line-height: 1;
-
     span {
       font-size: 0.55em;
       margin-left: 2px;
     }
   }
-
   .desc {
     margin-top: 0.35em;
     font-size: 0.84em;
     font-weight: 700;
     color: #475569;
   }
-
   .bottom-row {
     display: flex;
     align-items: center;
@@ -614,7 +626,6 @@ const WeatherMiniCard = styled(BaseCard)`
     margin-top: 0.1em;
     margin-bottom: 1.2em;
   }
-
   .badge {
     font-size: 0.72em;
     font-weight: 800;
@@ -623,7 +634,6 @@ const WeatherMiniCard = styled(BaseCard)`
     padding: 5px 10px;
     border-radius: 999px;
   }
-
   .muted {
     font-size: 0.73em;
     font-weight: 700;
@@ -637,21 +647,18 @@ const ScoreMiniCard = styled(BaseCard)`
   background: linear-gradient(180deg, #ecfdf5 0%, #dff7eb 100%);
   border: 1px solid rgba(16, 185, 129, 0.12);
   padding: 1.15em 1.1em;
-
   .score-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.9em;
   }
-
   .small-title {
     font-size: 0.92em;
     font-weight: 800;
     color: #0f172a;
     letter-spacing: -0.02em;
   }
-
   .score-badge {
     font-size: 0.68em;
     font-weight: 800;
@@ -661,7 +668,6 @@ const ScoreMiniCard = styled(BaseCard)`
     border-radius: 999px;
     white-space: nowrap;
   }
-
   .score-row {
     display: flex;
     justify-content: space-between;
@@ -669,14 +675,12 @@ const ScoreMiniCard = styled(BaseCard)`
     gap: 0.8em;
     margin-bottom: 0.8em;
   }
-
   .score-wrap {
     display: flex;
     align-items: baseline;
     gap: 4px;
     line-height: 1;
   }
-
   .score {
     font-size: 2.5rem;
     font-weight: 900;
@@ -684,14 +688,12 @@ const ScoreMiniCard = styled(BaseCard)`
     letter-spacing: -0.05em;
     line-height: 1;
   }
-
   .percent {
     font-size: 1rem;
     font-weight: 800;
     color: #10b981;
     line-height: 1;
   }
-
   .phase-badge {
     display: inline-flex;
     align-items: center;
@@ -704,7 +706,6 @@ const ScoreMiniCard = styled(BaseCard)`
     font-weight: 800;
     white-space: nowrap;
   }
-
   .progress-track {
     width: 100%;
     height: 10px;
@@ -713,13 +714,11 @@ const ScoreMiniCard = styled(BaseCard)`
     overflow: hidden;
     margin-bottom: 0.85em;
   }
-
   .progress-fill {
     height: 100%;
     border-radius: 999px;
     background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
   }
-
   .status {
     font-size: 0.82em;
     font-weight: 700;
@@ -734,18 +733,15 @@ const CameraCard = styled(BaseCard)`
   max-height: 610px;
   padding: 1em;
   overflow: hidden;
-
   .header-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 0.8em;
-
     h2 {
       margin-bottom: 0;
     }
   }
-
   .cam-label {
     font-size: 0.72em;
     font-weight: 800;
@@ -755,7 +751,6 @@ const CameraCard = styled(BaseCard)`
     border-radius: 8px;
     flex-shrink: 0;
   }
-
   .placeholder-content {
     flex: 1;
     background: #0f172a;
@@ -769,14 +764,12 @@ const CameraCard = styled(BaseCard)`
     overflow: hidden;
     height: calc(100% - 42px);
     min-height: 0;
-
     .icon {
       font-size: 2.3em;
       margin-bottom: 8px;
       z-index: 2;
       opacity: 0.8;
     }
-
     .text {
       font-size: 0.84em;
       font-weight: 700;
@@ -784,7 +777,6 @@ const CameraCard = styled(BaseCard)`
       z-index: 2;
       opacity: 0.85;
     }
-
     .pulse-ring {
       position: absolute;
       width: 60px;
@@ -794,13 +786,11 @@ const CameraCard = styled(BaseCard)`
       animation: radar 2s infinite ease-out;
     }
   }
-
   @media (max-width: 1200px) {
     height: auto;
     min-height: 520px;
     max-height: none;
   }
-
   @keyframes radar {
     0% {
       transform: scale(0.5);
@@ -819,18 +809,15 @@ const LogGroupCard = styled(BaseCard)`
   min-height: 300px;
   max-height: 300px;
   overflow: hidden;
-
   .log-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.8em;
-
     h2 {
       margin-bottom: 0;
     }
   }
-
   @media (max-width: 1200px) {
     flex: none;
     height: auto;
@@ -846,30 +833,25 @@ const AILogGroupCard = styled(BaseCard)`
   max-height: calc(610px - 300px - var(--grid-gap));
   padding: 1em;
   overflow: hidden;
-
   .log-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.8em;
-
     h2 {
       margin-bottom: 0;
     }
   }
-
   .sub-badge {
     font-size: 0.68em;
     font-weight: 800;
     padding: 4px 10px;
     border-radius: 20px;
-
     &.ai {
       background: rgba(16, 185, 129, 0.1);
       color: #10b981;
     }
   }
-
   @media (max-width: 1200px) {
     height: auto;
     min-height: 240px;
@@ -883,7 +865,6 @@ const SensorsGroupCard = styled(BaseCard)`
   min-height: 610px;
   max-height: 610px;
   overflow: hidden;
-
   @media (max-width: 1200px) {
     height: auto;
     min-height: 400px;
@@ -894,39 +875,33 @@ const SensorsGroupCard = styled(BaseCard)`
 const SensorGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: repeat(6, 1fr); // 6칸 고정
+  grid-template-rows: repeat(6, 1fr);
   gap: 0.55em;
-
   flex: 1;
   min-height: 0;
-  height: 100%; // 부모 높이 꽉 채움
+  height: 100%;
 `;
 
 const SensorGridItem = styled.div`
   background-color: rgba(241, 245, 249, 0.6);
   border-radius: 16px;
   padding: 0.6em 0.9em;
-
   display: flex;
   flex-direction: column;
-  justify-content: center; // 카드 내부 내용 세로 가운데
+  justify-content: center;
   gap: 2px;
-
   min-width: 0;
   min-height: 0;
   transition: background 0.3s ease;
-
   &:hover {
     background-color: #f8fafc;
   }
-
   .top {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin: 0;
   }
-
   .label {
     font-size: 0.68em;
     font-weight: 800;
@@ -935,7 +910,6 @@ const SensorGridItem = styled.div`
     letter-spacing: -0.01em;
     word-break: keep-all;
   }
-
   .trend {
     font-size: 0.65em;
     font-weight: 800;
@@ -943,48 +917,40 @@ const SensorGridItem = styled.div`
     border-radius: 20px;
     white-space: nowrap;
     flex-shrink: 0;
-
     &.up {
       color: #ef4444;
       background: rgba(239, 68, 68, 0.1);
     }
-
     &.down {
       color: #3b82f6;
       background: rgba(59, 130, 246, 0.1);
     }
-
     &.stable {
       color: #10b981;
       background: rgba(16, 185, 129, 0.1);
     }
   }
-
   .middle {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin: 0;
-
     .left {
       display: flex;
       align-items: baseline;
       gap: 4px;
     }
-
     .value {
       font-size: 1.2em;
       font-weight: 800;
       color: #0f172a;
       line-height: 1;
     }
-
     .unit {
       font-size: 0.75em;
       color: #94a3b8;
       line-height: 1;
     }
-
     .right {
       display: flex;
       gap: 6px;
@@ -993,7 +959,6 @@ const SensorGridItem = styled.div`
       color: #94a3b8;
       line-height: 1;
     }
-
     .range {
       color: #64748b;
     }
@@ -1008,11 +973,9 @@ const LogList = styled.div`
   min-height: 0;
   overflow-y: auto;
   padding-right: 0.3em;
-
   &::-webkit-scrollbar {
     width: 4px;
   }
-
   &::-webkit-scrollbar-thumb {
     background: #e2e8f0;
     border-radius: 4px;
@@ -1031,31 +994,25 @@ const DeviceLogItem = styled.div`
     transform 0.2s ease,
     background 0.2s ease;
   border-left: 4px solid transparent;
-
   &:hover {
     background: #ffffff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     transform: translateY(-2px);
   }
-
   &.active {
     border-left-color: #10b981;
     background: rgba(16, 185, 129, 0.03);
   }
-
   &.done {
     border-left-color: #94a3b8;
   }
-
   .log-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-
     .badges {
       display: flex;
       gap: 0.5em;
-
       .sector-badge {
         font-size: 0.72em;
         font-weight: 800;
@@ -1066,13 +1023,11 @@ const DeviceLogItem = styled.div`
       }
     }
   }
-
   .log-mid {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     gap: 1em;
-
     .device {
       font-size: 0.96em;
       font-weight: 800;
@@ -1081,23 +1036,19 @@ const DeviceLogItem = styled.div`
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
     .action {
       font-size: 0.82em;
       font-weight: 800;
       white-space: nowrap;
       flex-shrink: 0;
-
       &.active {
         color: #10b981;
       }
-
       &.done {
         color: #64748b;
       }
     }
   }
-
   .log-bot {
     .desc {
       font-size: 0.78em;
@@ -1121,26 +1072,62 @@ const GrowthGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.8em;
-
   .g-item {
     display: flex;
     flex-direction: column;
-    gap: 0.2em;
+    gap: 0.4em;
     background: #f8fafc;
-    padding: 9px;
+    padding: 10px 12px;
     border-radius: 12px;
-
+    .g-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
     .l {
       font-size: 0.66em;
       font-weight: 800;
       color: #94a3b8;
       text-transform: uppercase;
     }
-
+    .diff-badge {
+      font-size: 0.65em;
+      font-weight: 800;
+      padding: 3px 6px;
+      border-radius: 4px;
+      &.normal {
+        background: #f0fdf4;
+        color: #15803d;
+      }
+      &.warning {
+        background: #fef2f2;
+        color: #dc2626;
+      }
+      &.good {
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+    }
+    .g-body {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
     .v {
-      font-size: 1em;
+      font-size: 1.1em;
       font-weight: 800;
       color: #0f172a;
+    }
+    .u {
+      font-size: 0.7em;
+      font-weight: 700;
+      color: #64748b;
+    }
+    .std {
+      font-size: 0.65em;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-left: auto;
     }
   }
 `;
@@ -1153,11 +1140,9 @@ const AILogList = styled.div`
   min-height: 0;
   overflow-y: auto;
   padding-right: 0.3em;
-
   &::-webkit-scrollbar {
     width: 4px;
   }
-
   &::-webkit-scrollbar-thumb {
     background: #e2e8f0;
     border-radius: 4px;
@@ -1172,31 +1157,25 @@ const AILogItem = styled.div`
   margin-bottom: 0.35em;
   min-width: 0;
   border-left: 3px solid transparent;
-
   &.action {
     background: rgba(16, 185, 129, 0.05);
     border-left-color: #10b981;
-
     .badge {
       color: #10b981;
     }
   }
-
   &.warning {
     background: rgba(239, 68, 68, 0.05);
     border-left-color: #ef4444;
-
     .badge {
       color: #ef4444;
     }
   }
-
   .top-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.4em;
-
     .badge {
       font-size: 0.68em;
       font-weight: 900;
@@ -1204,14 +1183,12 @@ const AILogItem = styled.div`
       padding: 2px 6px;
       border-radius: 4px;
     }
-
     .time {
       font-size: 0.72em;
       color: #94a3b8;
       font-weight: 800;
     }
   }
-
   .title {
     font-size: 0.84em;
     font-weight: 800;
@@ -1221,7 +1198,6 @@ const AILogItem = styled.div`
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
   .desc {
     font-size: 0.75em;
     color: #475569;
