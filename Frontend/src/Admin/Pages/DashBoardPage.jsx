@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import { useOutletContext } from 'react-router-dom';
 import { CardTitle } from './Styles/AdminShared';
+import { getCameraByBranch, FALLBACK_IMAGE } from '../data/cctvData';
 
-// 🚨 프론트엔드 전용: 퍼센트(%) 기반 생육 데이터 자동 계산 알고리즘
 const getGrowthByPercent = (percent, phase) => {
-  // 1. 스마트팜 방울토마토 실무 기준 9단계 표준 생육 가이드라인 (100% 기준치)
   const standardDB = {
     '육묘기 🌱': { height: 25.0, leaf: 6, length: 5.5, width: 4.5 },
     '정식기 🪴': { height: 48.0, leaf: 9, length: 8.0, width: 6.5 },
@@ -18,10 +17,7 @@ const getGrowthByPercent = (percent, phase) => {
     '연속 수확기 🔄': { height: 260.0, leaf: 30, length: 18.5, width: 15.5 },
   };
 
-  // 현재 단계의 100% 표준치 가져오기 (매칭 안되면 기본값 사용)
   const target = standardDB[phase] || standardDB['1화방 개화기 🌼'];
-
-  // 2. 퍼센트(%)를 비율(ratio)로 변환하여 실측치 역산 (예: 96% -> 0.96 곱하기)
   const ratio = percent / 100;
 
   return {
@@ -53,8 +49,8 @@ const DashboardPage = () => {
 
   const dashboardData = useMemo(
     () => ({
-      '천안 본점 (종합관제센터)': {
-        percent: 96, // 🚨 점수가 아닌 퍼센트(%) 개념으로 적용
+      'A동 (표준 생육실)': {
+        percent: 96,
         phase: '1화방 개화기 🌼',
         status: '작물 활력도 최상 (전주 대비 2% 상승)',
         sensors: [
@@ -101,7 +97,6 @@ const DashboardPage = () => {
             status: 'stable',
           },
         ],
-        // 🚨 하드코딩 삭제! 96%와 '1화방 개화기'를 넣으면 자동으로 편차 및 실측치 계산
         growth: getGrowthByPercent(96, '1화방 개화기 🌼'),
         logs: [
           {
@@ -138,56 +133,56 @@ const DashboardPage = () => {
           },
         ],
       },
-      '천안 제2센터 (육묘 전용)': {
-        percent: 88, // 🚨 퍼센트 적용
+
+      'B동 (성장 지연실)': {
+        percent: 82,
         phase: '정식기 🪴',
-        status: '초기 활착 안정적 진행 중',
+        status: '생육 속도 저하 감지, 환경 보정 진행 중',
         sensors: [
           {
             label: '내부 온도',
-            value: 22.5,
+            value: 21.4,
             unit: '°C',
-            trend: '+0.2',
-            status: 'stable',
+            trend: '-0.4',
+            status: 'down',
           },
           {
             label: '내부 습도',
-            value: 70,
+            value: 72,
             unit: '%',
-            trend: '+5',
+            trend: '+3',
             status: 'up',
           },
           {
             label: 'CO2 농도',
-            value: 450,
+            value: 380,
             unit: 'ppm',
-            trend: '-10',
+            trend: '-12',
             status: 'down',
           },
           {
             label: '광합성 광량',
-            value: 280,
+            value: 240,
             unit: 'PPFD',
-            trend: '흐림',
-            status: 'stable',
+            trend: '부족',
+            status: 'down',
           },
           {
             label: '토양 양액 농도(EC)',
-            value: 1.0,
+            value: 0.9,
             unit: 'dS/m',
-            trend: '유지',
-            status: 'stable',
+            trend: '낮음',
+            status: 'down',
           },
           {
             label: '토양 산도(pH)',
-            value: 6.0,
+            value: 6.2,
             unit: 'pH',
             trend: '유지',
             status: 'stable',
           },
         ],
-        // 🚨 88%와 '정식기'를 넣어서 육묘장에 맞는 데이터로 자동 계산
-        growth: getGrowthByPercent(88, '정식기 🪴'),
+        growth: getGrowthByPercent(82, '정식기 🪴'),
         logs: [
           {
             id: 1,
@@ -207,13 +202,160 @@ const DashboardPage = () => {
           },
         ],
       },
+
+      'C동 (성장 촉진실)': {
+        percent: 91,
+        phase: '과실 비대기 🍏',
+        status: '촉진 생육 모드 정상 운영 중',
+        sensors: [
+          {
+            label: '내부 온도',
+            value: 25.1,
+            unit: '°C',
+            trend: '+0.3',
+            status: 'stable',
+          },
+          {
+            label: '내부 습도',
+            value: 63,
+            unit: '%',
+            trend: '-1',
+            status: 'stable',
+          },
+          {
+            label: 'CO2 농도',
+            value: 460,
+            unit: 'ppm',
+            trend: '+18',
+            status: 'up',
+          },
+          {
+            label: '광합성 광량',
+            value: 390,
+            unit: 'PPFD',
+            trend: '충분',
+            status: 'stable',
+          },
+          {
+            label: '토양 양액 농도(EC)',
+            value: 1.4,
+            unit: 'dS/m',
+            trend: '유지',
+            status: 'stable',
+          },
+          {
+            label: '토양 산도(pH)',
+            value: 5.7,
+            unit: 'pH',
+            trend: '유지',
+            status: 'stable',
+          },
+        ],
+        growth: getGrowthByPercent(91, '과실 비대기 🍏'),
+        logs: [
+          {
+            id: 1,
+            time: '14:20',
+            device: '💧 관수 밸브',
+            action: '자동 급액',
+            desc: '생육 촉진 레시피 적용',
+            status: 'active',
+          },
+          {
+            id: 2,
+            time: '13:40',
+            device: '💡 LED 보광등',
+            action: '출력 상승',
+            desc: '광량 보강 15% 적용',
+            status: 'active',
+          },
+        ],
+      },
     }),
     [],
   );
 
   const currentData =
-    dashboardData[selectedBranch] || dashboardData['천안 본점 (종합관제센터)'];
+    dashboardData[selectedBranch] || dashboardData['A동 (표준 생육실)'];
   const [liveSensors, setLiveSensors] = useState(currentData.sensors);
+
+  const currentCctv = getCameraByBranch(selectedBranch || 'A동 (표준 생육실)');
+  const isCctvWarning = currentCctv.status !== 'Live';
+  const isFallback = currentCctv.image === FALLBACK_IMAGE;
+
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(Date.now());
+  const [relativeUpdatedText, setRelativeUpdatedText] = useState('방금 전');
+  const retryTimerRef = useRef(null);
+
+  const getNowTime = () => {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    return `${hh}:${mm}:${ss}`;
+  };
+
+  const getRelativeTimeText = (timestamp) => {
+    const diffMs = Date.now() - timestamp;
+    const diffMin = Math.floor(diffMs / 60000);
+
+    if (diffMin <= 0) return '방금 전';
+    if (diffMin === 1) return '1분 전';
+    if (diffMin < 60) return `${diffMin}분 전`;
+
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour === 1) return '1시간 전';
+    if (diffHour < 24) return `${diffHour}시간 전`;
+
+    const diffDay = Math.floor(diffHour / 24);
+    return `${diffDay}일 전`;
+  };
+
+  const parseUpdatedAtToTimestamp = (text) => {
+    if (text === '방금 전') return Date.now();
+    if (text === '1분 전') return Date.now() - 1 * 60000;
+    if (text === '2분 전') return Date.now() - 2 * 60000;
+    if (text === '3분 전') return Date.now() - 3 * 60000;
+    return Date.now();
+  };
+
+  const handleRetryCctv = () => {
+    setIsRetrying(true);
+
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+    }
+
+    retryTimerRef.current = setTimeout(() => {
+      setIsRetrying(false);
+      const now = Date.now();
+      setLastUpdatedAt(now);
+      setRelativeUpdatedText('방금 전');
+    }, 2000);
+  };
+
+  useEffect(() => {
+    const baseTimestamp = parseUpdatedAtToTimestamp(currentCctv.updatedAt);
+    setLastUpdatedAt(baseTimestamp);
+    setRelativeUpdatedText(getRelativeTimeText(baseTimestamp));
+  }, [selectedBranch, currentCctv.updatedAt]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRelativeUpdatedText(getRelativeTimeText(lastUpdatedAt));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [lastUpdatedAt]);
+
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+      }
+    };
+  }, []);
 
   const weatherData = {
     temp: 15.2,
@@ -280,7 +422,6 @@ const DashboardPage = () => {
 
   const renderGrowthItem = (label, data) => {
     const diff = (data.value - data.target).toFixed(1);
-    const isNormal = diff >= -0.5 && diff <= 0.5;
     const isUnder = diff < -0.5;
 
     let badgeClass = 'normal';
@@ -341,20 +482,17 @@ const DashboardPage = () => {
 
           <ScoreMiniCard>
             <div className="score-top">
-              {/* 🚨 글씨 수정: 점수 -> 진행도 */}
               <div className="small-title">종합 생육 진행도</div>
               <div className="score-badge">매우 좋음</div>
             </div>
             <div className="score-row">
               <div className="score-wrap">
-                {/* 🚨 퍼센트 데이터 출력 */}
                 <span className="score">{currentData.percent}</span>
                 <span className="percent">%</span>
               </div>
               <div className="phase-badge">{currentData.phase}</div>
             </div>
             <div className="progress-track">
-              {/* 🚨 게이지바 길이 퍼센트에 연동 */}
               <div
                 className="progress-fill"
                 style={{ width: `${currentData.percent}%` }}
@@ -379,12 +517,63 @@ const DashboardPage = () => {
         <CameraCard>
           <div className="header-row">
             <CardTitle>현장 모니터링 (CCTV)</CardTitle>
-            <span className="cam-label">1번 카메라</span>
+            <span className="cam-label">{currentCctv.name}</span>
           </div>
-          <div className="placeholder-content">
-            <div className="pulse-ring"></div>
-            <span className="icon">📹</span>
-            <span className="text">스트리밍 연결 중...</span>
+
+          <div className="camera-view">
+            {!isFallback && (
+              <img
+                src={currentCctv.image}
+                alt={currentCctv.name}
+                className="camera-image"
+              />
+            )}
+
+            {isFallback && (
+              <div
+                className="camera-fallback-bg"
+                style={{ backgroundImage: `url(${FALLBACK_IMAGE})` }}
+              />
+            )}
+
+            <div className="camera-topbar">
+              <div
+                className={`live-dot ${isCctvWarning ? 'warning' : 'live'}`}
+              />
+              <span className="live-text">
+                {isRetrying
+                  ? 'RECONNECTING'
+                  : isCctvWarning
+                    ? 'SIGNAL WEAK'
+                    : 'LIVE'}
+              </span>
+              <span className="updated-time">{relativeUpdatedText}</span>
+            </div>
+
+            {isRetrying ? (
+              <div className="camera-overlay">
+                <div className="overlay-content">
+                  <div className="overlay-badge retry">재연결 중</div>
+                  <h3>실시간 영상 스트리밍 연결 중...</h3>
+                  <p>카메라 연결을 다시 시도하고 있습니다.</p>
+                </div>
+              </div>
+            ) : (
+              isCctvWarning && (
+                <div className="camera-overlay">
+                  <div className="overlay-content">
+                    <div className="overlay-badge">신호 없음</div>
+                    <h3>카메라 연결이 불안정합니다</h3>
+                    <p>
+                      현재 영상을 불러오지 못했습니다. 연결 상태를 확인해주세요.
+                    </p>
+                    <button className="retry-btn" onClick={handleRetryCctv}>
+                      연결 재시도
+                    </button>
+                  </div>
+                </div>
+              )
+            )}
           </div>
         </CameraCard>
 
@@ -474,7 +663,7 @@ const DashboardPage = () => {
 
 export default DashboardPage;
 
-// --- 하단 Styled Components 부분 ---
+// --- styled-components ---
 
 const BaseCard = styled.div`
   background: #ffffff;
@@ -573,51 +762,61 @@ const RightColumn = styled.div`
 const WeatherMiniCard = styled(BaseCard)`
   justify-content: space-between;
   min-height: 190px;
+
   .header-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.9em;
   }
+
   .small-title {
     font-size: 0.92em;
     font-weight: 800;
     color: #0f172a;
     letter-spacing: -0.02em;
   }
+
   .small-link {
     font-size: 0.75em;
     font-weight: 700;
     color: #94a3b8;
   }
+
   .weather-main {
     display: flex;
     align-items: center;
     gap: 0.9em;
   }
+
   .weather-icon {
     font-size: 2em;
   }
+
   .weather-info {
     display: flex;
     flex-direction: column;
   }
+
   .temp {
     font-size: 2em;
     font-weight: 800;
     color: #0f172a;
     line-height: 1;
+
     span {
       font-size: 0.55em;
       margin-left: 2px;
     }
   }
+
   .desc {
     margin-top: 0.35em;
     font-size: 0.84em;
     font-weight: 700;
     color: #475569;
   }
+
   .bottom-row {
     display: flex;
     align-items: center;
@@ -626,6 +825,7 @@ const WeatherMiniCard = styled(BaseCard)`
     margin-top: 0.1em;
     margin-bottom: 1.2em;
   }
+
   .badge {
     font-size: 0.72em;
     font-weight: 800;
@@ -634,6 +834,7 @@ const WeatherMiniCard = styled(BaseCard)`
     padding: 5px 10px;
     border-radius: 999px;
   }
+
   .muted {
     font-size: 0.73em;
     font-weight: 700;
@@ -647,18 +848,21 @@ const ScoreMiniCard = styled(BaseCard)`
   background: linear-gradient(180deg, #ecfdf5 0%, #dff7eb 100%);
   border: 1px solid rgba(16, 185, 129, 0.12);
   padding: 1.15em 1.1em;
+
   .score-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.9em;
   }
+
   .small-title {
     font-size: 0.92em;
     font-weight: 800;
     color: #0f172a;
     letter-spacing: -0.02em;
   }
+
   .score-badge {
     font-size: 0.68em;
     font-weight: 800;
@@ -668,6 +872,7 @@ const ScoreMiniCard = styled(BaseCard)`
     border-radius: 999px;
     white-space: nowrap;
   }
+
   .score-row {
     display: flex;
     justify-content: space-between;
@@ -675,12 +880,14 @@ const ScoreMiniCard = styled(BaseCard)`
     gap: 0.8em;
     margin-bottom: 0.8em;
   }
+
   .score-wrap {
     display: flex;
     align-items: baseline;
     gap: 4px;
     line-height: 1;
   }
+
   .score {
     font-size: 2.5rem;
     font-weight: 900;
@@ -688,12 +895,14 @@ const ScoreMiniCard = styled(BaseCard)`
     letter-spacing: -0.05em;
     line-height: 1;
   }
+
   .percent {
     font-size: 1rem;
     font-weight: 800;
     color: #10b981;
     line-height: 1;
   }
+
   .phase-badge {
     display: inline-flex;
     align-items: center;
@@ -706,6 +915,7 @@ const ScoreMiniCard = styled(BaseCard)`
     font-weight: 800;
     white-space: nowrap;
   }
+
   .progress-track {
     width: 100%;
     height: 10px;
@@ -714,11 +924,13 @@ const ScoreMiniCard = styled(BaseCard)`
     overflow: hidden;
     margin-bottom: 0.85em;
   }
+
   .progress-fill {
     height: 100%;
     border-radius: 999px;
     background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
   }
+
   .status {
     font-size: 0.82em;
     font-weight: 700;
@@ -733,15 +945,18 @@ const CameraCard = styled(BaseCard)`
   max-height: 610px;
   padding: 1em;
   overflow: hidden;
+
   .header-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 0.8em;
+
     h2 {
       margin-bottom: 0;
     }
   }
+
   .cam-label {
     font-size: 0.72em;
     font-weight: 800;
@@ -751,55 +966,158 @@ const CameraCard = styled(BaseCard)`
     border-radius: 8px;
     flex-shrink: 0;
   }
-  .placeholder-content {
+
+  .camera-view {
+    position: relative;
     flex: 1;
-    background: #0f172a;
+    height: calc(100% - 42px);
+    min-height: 0;
     border-radius: 16px;
+    overflow: hidden;
+    background: #0f172a;
+  }
+
+  .camera-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .camera-fallback-bg {
+    position: absolute;
+    inset: 0;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    filter: blur(3px) brightness(0.65);
+    transform: scale(1.04);
+  }
+
+  .camera-topbar {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    font-size: 0.74em;
+    font-weight: 800;
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+
+    &.live {
+      background: #ef4444;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+    }
+
+    &.warning {
+      background: #f59e0b;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    }
+  }
+
+  .live-text {
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(8px);
+  }
+
+  .updated-time {
+    margin-left: auto;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(8px);
+  }
+
+  .camera-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: rgba(0, 0, 0, 0.42);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .overlay-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    text-align: center;
     color: #ffffff;
-    position: relative;
-    overflow: hidden;
-    height: calc(100% - 42px);
-    min-height: 0;
-    .icon {
-      font-size: 2.3em;
-      margin-bottom: 8px;
-      z-index: 2;
-      opacity: 0.8;
-    }
-    .text {
-      font-size: 0.84em;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      z-index: 2;
-      opacity: 0.85;
-    }
-    .pulse-ring {
-      position: absolute;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      border: 2px solid #10b981;
-      animation: radar 2s infinite ease-out;
+    max-width: 380px;
+  }
+
+  .overlay-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    margin-bottom: 14px;
+    border-radius: 999px;
+    background: rgba(239, 68, 68, 0.16);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fecaca;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+
+    &.retry {
+      background: rgba(59, 130, 246, 0.16);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: #bfdbfe;
     }
   }
+
+  .overlay-content h3 {
+    margin: 0 0 10px;
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .overlay-content p {
+    margin: 0 0 18px;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.82);
+  }
+
+  .retry-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 18px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 0.92rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+
+  .retry-btn:hover {
+    transform: translateY(-2px);
+    background: #f8fafc;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  }
+
   @media (max-width: 1200px) {
     height: auto;
     min-height: 520px;
     max-height: none;
-  }
-  @keyframes radar {
-    0% {
-      transform: scale(0.5);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(2.5);
-      opacity: 0;
-    }
   }
 `;
 
@@ -809,15 +1127,18 @@ const LogGroupCard = styled(BaseCard)`
   min-height: 300px;
   max-height: 300px;
   overflow: hidden;
+
   .log-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.8em;
+
     h2 {
       margin-bottom: 0;
     }
   }
+
   @media (max-width: 1200px) {
     flex: none;
     height: auto;
@@ -833,25 +1154,30 @@ const AILogGroupCard = styled(BaseCard)`
   max-height: calc(610px - 300px - var(--grid-gap));
   padding: 1em;
   overflow: hidden;
+
   .log-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.8em;
+
     h2 {
       margin-bottom: 0;
     }
   }
+
   .sub-badge {
     font-size: 0.68em;
     font-weight: 800;
     padding: 4px 10px;
     border-radius: 20px;
+
     &.ai {
       background: rgba(16, 185, 129, 0.1);
       color: #10b981;
     }
   }
+
   @media (max-width: 1200px) {
     height: auto;
     min-height: 240px;
@@ -865,6 +1191,7 @@ const SensorsGroupCard = styled(BaseCard)`
   min-height: 610px;
   max-height: 610px;
   overflow: hidden;
+
   @media (max-width: 1200px) {
     height: auto;
     min-height: 400px;
@@ -893,15 +1220,18 @@ const SensorGridItem = styled.div`
   min-width: 0;
   min-height: 0;
   transition: background 0.3s ease;
+
   &:hover {
     background-color: #f8fafc;
   }
+
   .top {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin: 0;
   }
+
   .label {
     font-size: 0.68em;
     font-weight: 800;
@@ -910,6 +1240,7 @@ const SensorGridItem = styled.div`
     letter-spacing: -0.01em;
     word-break: keep-all;
   }
+
   .trend {
     font-size: 0.65em;
     font-weight: 800;
@@ -917,40 +1248,48 @@ const SensorGridItem = styled.div`
     border-radius: 20px;
     white-space: nowrap;
     flex-shrink: 0;
+
     &.up {
       color: #ef4444;
       background: rgba(239, 68, 68, 0.1);
     }
+
     &.down {
       color: #3b82f6;
       background: rgba(59, 130, 246, 0.1);
     }
+
     &.stable {
       color: #10b981;
       background: rgba(16, 185, 129, 0.1);
     }
   }
+
   .middle {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin: 0;
+
     .left {
       display: flex;
       align-items: baseline;
       gap: 4px;
     }
+
     .value {
       font-size: 1.2em;
       font-weight: 800;
       color: #0f172a;
       line-height: 1;
     }
+
     .unit {
       font-size: 0.75em;
       color: #94a3b8;
       line-height: 1;
     }
+
     .right {
       display: flex;
       gap: 6px;
@@ -959,6 +1298,7 @@ const SensorGridItem = styled.div`
       color: #94a3b8;
       line-height: 1;
     }
+
     .range {
       color: #64748b;
     }
@@ -973,9 +1313,11 @@ const LogList = styled.div`
   min-height: 0;
   overflow-y: auto;
   padding-right: 0.3em;
+
   &::-webkit-scrollbar {
     width: 4px;
   }
+
   &::-webkit-scrollbar-thumb {
     background: #e2e8f0;
     border-radius: 4px;
@@ -994,25 +1336,31 @@ const DeviceLogItem = styled.div`
     transform 0.2s ease,
     background 0.2s ease;
   border-left: 4px solid transparent;
+
   &:hover {
     background: #ffffff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     transform: translateY(-2px);
   }
+
   &.active {
     border-left-color: #10b981;
     background: rgba(16, 185, 129, 0.03);
   }
+
   &.done {
     border-left-color: #94a3b8;
   }
+
   .log-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
     .badges {
       display: flex;
       gap: 0.5em;
+
       .sector-badge {
         font-size: 0.72em;
         font-weight: 800;
@@ -1023,11 +1371,13 @@ const DeviceLogItem = styled.div`
       }
     }
   }
+
   .log-mid {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     gap: 1em;
+
     .device {
       font-size: 0.96em;
       font-weight: 800;
@@ -1036,19 +1386,23 @@ const DeviceLogItem = styled.div`
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
     .action {
       font-size: 0.82em;
       font-weight: 800;
       white-space: nowrap;
       flex-shrink: 0;
+
       &.active {
         color: #10b981;
       }
+
       &.done {
         color: #64748b;
       }
     }
   }
+
   .log-bot {
     .desc {
       font-size: 0.78em;
@@ -1072,6 +1426,7 @@ const GrowthGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.8em;
+
   .g-item {
     display: flex;
     flex-direction: column;
@@ -1079,50 +1434,60 @@ const GrowthGrid = styled.div`
     background: #f8fafc;
     padding: 10px 12px;
     border-radius: 12px;
+
     .g-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+
     .l {
       font-size: 0.66em;
       font-weight: 800;
       color: #94a3b8;
       text-transform: uppercase;
     }
+
     .diff-badge {
       font-size: 0.65em;
       font-weight: 800;
       padding: 3px 6px;
       border-radius: 4px;
+
       &.normal {
         background: #f0fdf4;
         color: #15803d;
       }
+
       &.warning {
         background: #fef2f2;
         color: #dc2626;
       }
+
       &.good {
         background: #eff6ff;
         color: #1d4ed8;
       }
     }
+
     .g-body {
       display: flex;
       align-items: baseline;
       gap: 4px;
     }
+
     .v {
       font-size: 1.1em;
       font-weight: 800;
       color: #0f172a;
     }
+
     .u {
       font-size: 0.7em;
       font-weight: 700;
       color: #64748b;
     }
+
     .std {
       font-size: 0.65em;
       font-weight: 600;
@@ -1140,9 +1505,11 @@ const AILogList = styled.div`
   min-height: 0;
   overflow-y: auto;
   padding-right: 0.3em;
+
   &::-webkit-scrollbar {
     width: 4px;
   }
+
   &::-webkit-scrollbar-thumb {
     background: #e2e8f0;
     border-radius: 4px;
@@ -1157,25 +1524,31 @@ const AILogItem = styled.div`
   margin-bottom: 0.35em;
   min-width: 0;
   border-left: 3px solid transparent;
+
   &.action {
     background: rgba(16, 185, 129, 0.05);
     border-left-color: #10b981;
+
     .badge {
       color: #10b981;
     }
   }
+
   &.warning {
     background: rgba(239, 68, 68, 0.05);
     border-left-color: #ef4444;
+
     .badge {
       color: #ef4444;
     }
   }
+
   .top-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.4em;
+
     .badge {
       font-size: 0.68em;
       font-weight: 900;
@@ -1183,12 +1556,14 @@ const AILogItem = styled.div`
       padding: 2px 6px;
       border-radius: 4px;
     }
+
     .time {
       font-size: 0.72em;
       color: #94a3b8;
       font-weight: 800;
     }
   }
+
   .title {
     font-size: 0.84em;
     font-weight: 800;
@@ -1198,6 +1573,7 @@ const AILogItem = styled.div`
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
   .desc {
     font-size: 0.75em;
     color: #475569;
