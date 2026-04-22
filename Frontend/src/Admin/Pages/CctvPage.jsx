@@ -67,7 +67,14 @@ const CctvPage = () => {
   const [isConnecting, setIsConnecting] = useState(true);
   const [imgSrc, setImgSrc] = useState(cameras[0].image || FALLBACK_IMAGE);
 
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
   const connectTimerRef = useRef(null);
+  // 🚨 추가: 이미지 가두리 계산을 위해 카메라 영역 크기를 재는 Ref
+  const frameRef = useRef(null);
 
   const isFallbackCamera = (cam) => cam?.image === FALLBACK_IMAGE;
   const isInactiveStatus = (cam) => cam?.status !== 'Live';
@@ -77,10 +84,10 @@ const CctvPage = () => {
   const startCameraLoading = (cam) => {
     setSelectedCam(cam);
     setIsConnecting(true);
+    setZoomLevel(1);
+    setPosition({ x: 0, y: 0 });
 
-    if (connectTimerRef.current) {
-      clearTimeout(connectTimerRef.current);
-    }
+    if (connectTimerRef.current) clearTimeout(connectTimerRef.current);
 
     connectTimerRef.current = setTimeout(() => {
       setDisplayedCam(cam);
@@ -91,11 +98,8 @@ const CctvPage = () => {
 
   useEffect(() => {
     startCameraLoading(cameras[0]);
-
     return () => {
-      if (connectTimerRef.current) {
-        clearTimeout(connectTimerRef.current);
-      }
+      if (connectTimerRef.current) clearTimeout(connectTimerRef.current);
     };
   }, []);
 
@@ -103,15 +107,24 @@ const CctvPage = () => {
     const firstCamOfSector = cameras.find(
       (cam) => cam.sectorId === activeSector,
     );
-
-    if (firstCamOfSector) {
-      startCameraLoading(firstCamOfSector);
-    }
+    if (firstCamOfSector) startCameraLoading(firstCamOfSector);
   }, [activeSector]);
 
-  const handleCameraClick = (cam) => {
-    startCameraLoading(cam);
-  };
+  // 🚨 추가: 줌 레벨이 변할 때마다 이미지가 밖으로 나가지 않게 자동으로 좌표를 땡겨줌 (Clamp)
+  useEffect(() => {
+    if (frameRef.current) {
+      const rect = frameRef.current.getBoundingClientRect();
+      const maxX = (rect.width * (zoomLevel - 1)) / 2;
+      const maxY = (rect.height * (zoomLevel - 1)) / 2;
+
+      setPosition((prev) => ({
+        x: Math.max(-maxX, Math.min(maxX, prev.x)),
+        y: Math.max(-maxY, Math.min(maxY, prev.y)),
+      }));
+    }
+  }, [zoomLevel]);
+
+  const handleCameraClick = (cam) => startCameraLoading(cam);
 
   const handleCapture = () => {
     setIsCapturing(true);
@@ -123,6 +136,36 @@ const CctvPage = () => {
     }, 150);
   };
 
+  const handleZoomIn = () => setZoomLevel((prev) => Math.min(prev + 0.5, 3));
+  const handleZoomOut = () => setZoomLevel((prev) => Math.max(prev - 0.5, 1));
+
+  const handleMouseDown = (e) => {
+    if (zoomLevel <= 1) return;
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+  };
+
+  // 🚨 수정: 마우스 이동 시 한계치(Boundary)를 계산해서 밖으로 못 나가게 방어
+  const handleMouseMove = (e) => {
+    if (!isDragging || zoomLevel <= 1 || !frameRef.current) return;
+
+    const rect = frameRef.current.getBoundingClientRect();
+    // 현재 줌 배율에 맞춰서 X, Y축으로 이동 가능한 최대 픽셀값을 계산
+    const maxX = (rect.width * (zoomLevel - 1)) / 2;
+    const maxY = (rect.height * (zoomLevel - 1)) / 2;
+
+    let newX = e.clientX - dragStart.x;
+    let newY = e.clientY - dragStart.y;
+
+    // 계산된 최대치 안에서만 움직이도록 값 강제 고정 (가두리 양식)
+    newX = Math.max(-maxX, Math.min(maxX, newX));
+    newY = Math.max(-maxY, Math.min(maxY, newY));
+
+    setPosition({ x: newX, y: newY });
+  };
+
+  const handleMouseUp = () => setIsDragging(false);
+
   const currentCam = isConnecting ? selectedCam : displayedCam;
 
   return (
@@ -130,7 +173,6 @@ const CctvPage = () => {
       <Flex dir="column" flex="1" style={{ minWidth: 0 }}>
         <BaseCard flex="1">
           <CardTitle>현장 카메라 목록</CardTitle>
-
           <NavContainer>
             {sectors.map((sector) => {
               const isActiveSector = activeSector === sector.id;
@@ -183,7 +225,6 @@ const CctvPage = () => {
                 기기 ID: {currentCam.id.toUpperCase()}
               </span>
             </div>
-
             <div
               className={`live-badge ${currentCam.status === 'Live' ? 'live' : 'warning'}`}
             >
@@ -194,13 +235,36 @@ const CctvPage = () => {
           </div>
 
           <div className={`camera-container ${isCapturing ? 'capturing' : ''}`}>
-            <div className="camera-frame">
+            {/* 🚨 frameRef를 연결하여 실제 카메라 영역의 가로세로 사이즈를 측정함 */}
+            <div
+              className="camera-frame"
+              ref={frameRef}
+              style={{ overflow: 'hidden' }}
+            >
               {!isConnecting && !isFallbackCamera(displayedCam) && (
                 <img
                   src={imgSrc}
                   alt={displayedCam.name}
                   className="camera-image"
+                  draggable={false}
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
                   onError={() => setImgSrc(FALLBACK_IMAGE)}
+                  style={{
+                    transform: `translate(${position.x}px, ${position.y}px) scale(${zoomLevel})`,
+                    transition: isDragging
+                      ? 'none'
+                      : 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+                    transformOrigin: 'center center',
+                    cursor:
+                      zoomLevel > 1
+                        ? isDragging
+                          ? 'grabbing'
+                          : 'grab'
+                        : 'default',
+                  }}
                 />
               )}
 
@@ -242,15 +306,9 @@ const CctvPage = () => {
 
           <CameraControls>
             <div className="control-group">
-              <button>◀ 좌측 회전</button>
-              <button>우측 회전 ▶</button>
+              <button onClick={handleZoomIn}>➕ 줌 인 (확대)</button>
+              <button onClick={handleZoomOut}>➖ 줌 아웃 (축소)</button>
             </div>
-
-            <div className="control-group">
-              <button>➕ 줌 인 (확대)</button>
-              <button>➖ 줌 아웃 (축소)</button>
-            </div>
-
             <button className="primary-btn" onClick={handleCapture}>
               📸 분석용 화면 캡처
             </button>
@@ -263,6 +321,7 @@ const CctvPage = () => {
 
 export default CctvPage;
 
+// --- CSS 영역 (기존과 동일) ---
 const ContentGrid = styled.div`
   flex: 1;
   display: grid;
@@ -270,7 +329,6 @@ const ContentGrid = styled.div`
   gap: 1.5em;
   width: 100%;
   min-height: 0;
-
   @media (max-width: 1024px) {
     display: flex;
     flex-direction: column;
@@ -284,22 +342,18 @@ const NavContainer = styled.div`
   flex: 1;
   overflow-y: auto;
   padding-right: 0.5em;
-
   &::-webkit-scrollbar {
     width: 4px;
   }
-
   &::-webkit-scrollbar-thumb {
     background: #e2e8f0;
     border-radius: 4px;
   }
-
   .sector-group {
     display: flex;
     flex-direction: column;
     gap: 0.4em;
   }
-
   .sector-header {
     display: flex;
     align-items: center;
@@ -309,32 +363,26 @@ const NavContainer = styled.div`
     background: #f8fafc;
     cursor: pointer;
     transition: 0.2s;
-
     .icon {
       font-size: 1.1em;
     }
-
     .name {
       font-size: 0.95em;
       font-weight: 800;
       color: #475569;
     }
-
     &:hover {
       background: #f1f5f9;
     }
-
     &.expanded {
       background: #ffffff;
       border: 1px solid rgba(226, 232, 240, 0.8);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-
       .name {
         color: #0f172a;
       }
     }
   }
-
   .cam-list {
     display: flex;
     flex-direction: column;
@@ -342,7 +390,6 @@ const NavContainer = styled.div`
     margin-left: 1em;
     padding-left: 1em;
     border-left: 2px solid #f1f5f9;
-
     .cam-item {
       display: flex;
       justify-content: space-between;
@@ -352,7 +399,6 @@ const NavContainer = styled.div`
       cursor: pointer;
       transition: 0.2s;
       background: transparent;
-
       .cam-name {
         font-size: 0.85em;
         font-weight: 600;
@@ -361,34 +407,27 @@ const NavContainer = styled.div`
         overflow: hidden;
         text-overflow: ellipsis;
       }
-
       .status-dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
-
         &.live {
           background-color: #10b981;
           box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
         }
-
         &.warning {
           background-color: #f59e0b;
           box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
         }
       }
-
       &:hover {
         background: #f8fafc;
-
         .cam-name {
           color: #0f172a;
         }
       }
-
       &.active {
         background: rgba(16, 185, 129, 0.08);
-
         .cam-name {
           color: #10b981;
           font-weight: 800;
@@ -406,7 +445,6 @@ const CameraCard = styled(BaseCard)`
   display: flex;
   flex-direction: column;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-
   .camera-header {
     display: flex;
     justify-content: space-between;
@@ -415,12 +453,10 @@ const CameraCard = styled(BaseCard)`
     background-color: #ffffff;
     z-index: 10;
     border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-
     .title-area {
       display: flex;
       align-items: baseline;
       gap: 1em;
-
       .cam-id {
         font-size: 0.8em;
         font-weight: 700;
@@ -430,7 +466,6 @@ const CameraCard = styled(BaseCard)`
         border-radius: 6px;
       }
     }
-
     .live-badge {
       padding: 6px 14px;
       border-radius: 20px;
@@ -439,20 +474,17 @@ const CameraCard = styled(BaseCard)`
       letter-spacing: 0.05em;
       display: flex;
       align-items: center;
-
       &.live {
         color: #ef4444;
         background: rgba(239, 68, 68, 0.1);
         animation: pulseRed 2s infinite;
       }
-
       &.warning {
         color: #f59e0b;
         background: rgba(245, 158, 11, 0.1);
       }
     }
   }
-
   .camera-container {
     flex: 1;
     position: relative;
@@ -466,20 +498,17 @@ const CameraCard = styled(BaseCard)`
     transition:
       background-color 0.05s ease-out,
       opacity 0.05s ease-out;
-
     &.capturing {
       background: #ffffff;
       opacity: 0.9;
     }
   }
-
   .camera-frame {
     position: relative;
     width: 100%;
     height: 100%;
     background: #0b1220;
   }
-
   .camera-image {
     position: absolute;
     inset: 0;
@@ -489,7 +518,6 @@ const CameraCard = styled(BaseCard)`
     display: block;
     z-index: 1;
   }
-
   .camera-fallback-bg {
     position: absolute;
     inset: 0;
@@ -500,7 +528,6 @@ const CameraCard = styled(BaseCard)`
     transform: scale(1.05);
     z-index: 1;
   }
-
   .camera-layer {
     position: absolute;
     inset: 0;
@@ -509,11 +536,9 @@ const CameraCard = styled(BaseCard)`
     justify-content: center;
     z-index: 2;
   }
-
   .connecting-layer {
     background: rgba(8, 12, 20, 0.85);
   }
-
   .video-placeholder {
     width: 100%;
     height: 100%;
@@ -522,13 +547,11 @@ const CameraCard = styled(BaseCard)`
     align-items: center;
     justify-content: center;
     color: rgba(255, 255, 255, 0.3);
-
     .icon {
       font-size: 4em;
       margin-bottom: 15px;
       color: rgba(255, 255, 255, 0.15);
     }
-
     p {
       font-size: 1.15em;
       font-weight: 700;
@@ -536,12 +559,10 @@ const CameraCard = styled(BaseCard)`
       text-transform: none;
     }
   }
-
   .camera-overlay {
     background: rgba(0, 0, 0, 0.45);
     padding: 24px;
   }
-
   .overlay-content {
     display: flex;
     flex-direction: column;
@@ -550,7 +571,6 @@ const CameraCard = styled(BaseCard)`
     color: #ffffff;
     max-width: 420px;
   }
-
   .overlay-badge {
     display: inline-flex;
     align-items: center;
@@ -565,21 +585,18 @@ const CameraCard = styled(BaseCard)`
     font-weight: 800;
     letter-spacing: 0.04em;
   }
-
   .overlay-content h3 {
     margin: 0 0 10px;
     font-size: 1.45rem;
     font-weight: 800;
     line-height: 1.3;
   }
-
   .overlay-content p {
     margin: 0 0 18px;
     font-size: 0.98rem;
     line-height: 1.6;
     color: rgba(255, 255, 255, 0.82);
   }
-
   .retry-btn {
     border: none;
     border-radius: 12px;
@@ -591,13 +608,11 @@ const CameraCard = styled(BaseCard)`
     cursor: pointer;
     transition: 0.2s ease;
   }
-
   .retry-btn:hover {
     transform: translateY(-2px);
     background: #f8fafc;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
   }
-
   @keyframes pulseRed {
     0% {
       opacity: 1;
@@ -613,18 +628,17 @@ const CameraCard = styled(BaseCard)`
 
 const CameraControls = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   padding: 1.2em 2em;
   background-color: #ffffff;
   z-index: 10;
   border-top: 1px solid rgba(226, 232, 240, 0.6);
-
+  gap: 1em;
   .control-group {
     display: flex;
     gap: 0.8em;
   }
-
   button {
     padding: 0.8em 1.2em;
     border-radius: 10px;
@@ -635,21 +649,18 @@ const CameraControls = styled.div`
     font-size: 0.9em;
     cursor: pointer;
     transition: 0.2s;
-
     &:hover {
       background-color: #e2e8f0;
       color: #0f172a;
       transform: translateY(-2px);
     }
   }
-
   .primary-btn {
     background-color: #0f172a;
     color: #fff;
     display: flex;
     align-items: center;
     gap: 6px;
-
     &:hover {
       background-color: #1e293b;
       color: #fff;
