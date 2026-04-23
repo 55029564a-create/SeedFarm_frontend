@@ -1,85 +1,78 @@
-import styled from 'styled-components';
-import FieldPageShell from '../Components/FieldPageShell';
-
-const alertData = [
-  {
-    id: 1,
-    level: 'danger',
-    title: '온도 상승 감지',
-    desc: 'Sector 01 내부 온도 31.8°C 초과',
-    time: '방금 전',
-    action: '환기팬 가동 권장',
-  },
-  {
-    id: 2,
-    level: 'warning',
-    title: '급수 부족 예측',
-    desc: '일사량 증가로 수분 부족 가능성',
-    time: '3분 전',
-    action: '급수량 소폭 증가',
-  },
-  {
-    id: 3,
-    level: 'normal',
-    title: '자동 급수 실행',
-    desc: 'AI 제어에 의해 급수 2.5L 진행',
-    time: '12분 전',
-    action: '정상 처리 완료',
-  },
-  {
-    id: 4,
-    level: 'warning',
-    title: '습도 저하 감지',
-    desc: '현재 습도 49%로 목표 하한 근접',
-    time: '20분 전',
-    action: '미스트 시스템 확인',
-  },
-];
+import { useEffect, useMemo, useState } from "react";
+import styled from "styled-components";
+import FieldPageShell from "../Components/FieldPageShell";
+import { getDashboard } from "../api/fieldApi";
+import { FIELD_BATCH_ID } from "../fieldConfig";
 
 export default function AlertsPage() {
+  const [logs, setLogs] = useState([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await getDashboard(FIELD_BATCH_ID);
+        setLogs(data?.device_logs ?? []);
+      } catch (error) {
+        console.error("Alert logs load failed:", error);
+      }
+    };
+    load();
+  }, []);
+
+  const summary = useMemo(() => {
+    const critical = logs.filter((log) =>
+      ["fail", "triggered"].includes((log.status || "").toLowerCase())
+    ).length;
+    const normal = logs.filter(
+      (log) => !["fail", "triggered"].includes((log.status || "").toLowerCase())
+    ).length;
+    return { critical, normal, total: logs.length };
+  }, [logs]);
+
   return (
-    <FieldPageShell title="Alerts" rightText="4 Alerts">
+    <FieldPageShell title="Alerts" rightText={`${summary.total} Logs`}>
       <TopSummary>
         <SummaryCard>
           <span>Critical</span>
-          <strong>1</strong>
+          <strong>{summary.critical}</strong>
         </SummaryCard>
         <SummaryCard>
-          <span>Warning</span>
-          <strong>2</strong>
+          <span>Normal</span>
+          <strong>{summary.normal}</strong>
         </SummaryCard>
         <SummaryCard>
-          <span>Resolved</span>
-          <strong>1</strong>
+          <span>Total</span>
+          <strong>{summary.total}</strong>
         </SummaryCard>
       </TopSummary>
 
       <PrimaryAlert>
-        <div className="badge">DANGER</div>
-        <h2>현재 가장 중요한 알림</h2>
-        <p>Sector 01 온도 과열 상태입니다. 즉시 환기 장치를 확인하세요.</p>
-        <ActionRow>
-          <MainAction>환기 ON</MainAction>
-          <SubAction>상세 보기</SubAction>
-        </ActionRow>
+        <div className="badge">TELEGRAM</div>
+        <h2>경고는 텔레그램으로 전송됩니다.</h2>
+        <p>이 페이지는 텔레그램으로 발송된 경고/동작의 최근 이력을 보여줍니다.</p>
       </PrimaryAlert>
 
-      <SectionTitle>실시간 알림 로그</SectionTitle>
+      <SectionTitle>경고/이벤트 이력</SectionTitle>
 
       <AlertList>
-        {alertData.map((item) => (
-          <AlertCard key={item.id} $level={item.level}>
+        {logs.length === 0 && <EmptyText>아직 수집된 이력이 없습니다.</EmptyText>}
+        {logs.map((item) => (
+          <AlertCard
+            key={item.id}
+            $level={["fail", "triggered"].includes((item.status || "").toLowerCase()) ? "danger" : "normal"}
+          >
             <div className="top">
               <div className="left">
-                <div className="title">{item.title}</div>
-                <div className="desc">{item.desc}</div>
+                <div className="title">{item.device || "시스템"}</div>
+                <div className="desc">{item.detail || "메시지 없음"}</div>
               </div>
-              <div className="time">{item.time}</div>
+              <div className="time">{item.time || "-"}</div>
             </div>
 
             <div className="bottom">
-              <div className="action">{item.action}</div>
-              <button>확인</button>
+              <div className="action">
+                상태: {item.status || "-"} / 모드: {item.mode || "-"}
+              </div>
             </div>
           </AlertCard>
         ))}
@@ -151,30 +144,6 @@ const PrimaryAlert = styled.section`
   }
 `;
 
-const ActionRow = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-`;
-
-const MainAction = styled.button`
-  flex: 1;
-  height: 46px;
-  border-radius: 14px;
-  background: #dc2626;
-  color: #fff;
-  font-weight: 800;
-`;
-
-const SubAction = styled.button`
-  flex: 1;
-  height: 46px;
-  border-radius: 14px;
-  background: #ffffff;
-  color: #7f1d1d;
-  font-weight: 800;
-`;
-
 const SectionTitle = styled.h3`
   font-size: 16px;
   font-weight: 800;
@@ -186,6 +155,11 @@ const AlertList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+`;
+
+const EmptyText = styled.p`
+  color: #6b7280;
+  font-size: 14px;
 `;
 
 const AlertCard = styled.div`
@@ -244,12 +218,4 @@ const AlertCard = styled.div`
     color: #374151;
   }
 
-  button {
-    background: #eef2f7;
-    color: #111827;
-    font-size: 12px;
-    font-weight: 800;
-    padding: 8px 12px;
-    border-radius: 10px;
-  }
 `;

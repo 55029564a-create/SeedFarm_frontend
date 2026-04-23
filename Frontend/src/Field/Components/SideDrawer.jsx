@@ -1,7 +1,7 @@
-import React from 'react';
-import styled from 'styled-components';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { logout, getMe } from "../../api/auth";
+import React from "react";
+import styled from "styled-components";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { logout, getMe } from "../../Api/auth";
 import { useEffect, useState } from "react";
 
 // --- 🚨 형님이 만드신 고퀄리티 SVG 아이콘 그대로 이식 ---
@@ -129,20 +129,23 @@ export default function SideDrawer({ open, onClose }) {
   const [user, setUser] = useState(null);
 
   const menus = [
-    { label: 'Home', path: '/field', icon: <Icons.Dashboard /> },
-    { label: 'Alerts', path: '/field/alerts', icon: <Icons.Trending /> },
-    { label: 'Camera', path: '/field/camera', icon: <Icons.Camera /> },
-    { label: 'Control', path: '/field/control', icon: <Icons.Sliders /> },
+    { label: "Home", path: "/field", icon: <Icons.Dashboard /> },
+    { label: "이벤트", path: "/field/alerts", icon: <Icons.Trending /> },
+    { label: "Camera", path: "/field/camera", icon: <Icons.Camera /> },
+    { label: "Control", path: "/field/control", icon: <Icons.Sliders /> },
   ];
 
 
   useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
     const fetchUser = async () => {
       try {
         const data = await getMe();
         setUser(data);
-      } catch (err) {
-        console.error("user load fail", err);
+      } catch {
+        setUser(null);
       }
     };
 
@@ -150,39 +153,34 @@ export default function SideDrawer({ open, onClose }) {
   }, []);
 
   const handleLogout = async () => {
-      console.log("🔥 logout clicked");
-      try {
-        const refresh = localStorage.getItem("refresh_token");
-  
-        if (refresh) {
-          await logout(refresh);
-        }
-  
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-  
-        navigate("/login");
-  
-      } catch (err) {
-        console.error(err);
-  
-        // 실패해도 강제 로그아웃
-        localStorage.clear();
-        navigate("/login");
-      }
-    };
-    console.log("logout fn:", logout);
+    try {
+      const refresh = localStorage.getItem("refresh_token");
 
-
-    const getRoleLabel = (role) => {
-      switch (role) {
-        case "ADMIN":
-          return "총괄 관제 센터장";
-        case "USER":
-        default:
-          return "사용자";
+      if (refresh) {
+        await logout(refresh);
       }
-    };
+
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+
+      navigate("/Login");
+    } catch (err) {
+      console.error(err);
+
+      localStorage.clear();
+      navigate("/Login");
+    }
+  };
+
+  const getRoleLabel = (role) => {
+    switch (role) {
+      case "ADMIN":
+        return "총괄 관제 센터장";
+      case "USER":
+      default:
+        return "사용자";
+    }
+  };
 
   return (
     <>
@@ -213,7 +211,7 @@ export default function SideDrawer({ open, onClose }) {
               as={Link}
               to={menu.path}
               onClick={onClose}
-              className={location.pathname === menu.path ? 'active' : ''}
+              className={location.pathname === menu.path ? "active" : ""}
             >
               <div className="nav-icon">{menu.icon}</div>
               <span className="nav-text">{menu.label}</span>

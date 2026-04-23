@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 // import AdminPage from './Admin/Pages/AdminPage';
 import LandingPage from './Landing/Pages/LandingPage';
@@ -28,9 +27,12 @@ function App() {
 
           {/* 태블릿, 모바일 전용~ */}
           <Route path="/field" element={<TMHomePage />} />
-          <Route path="/field/Camera" element={<CameraPage />} />
-          <Route path="/field/Control" element={<ControlPage />} />
-          <Route path="/field/Alerts" element={<AlertsPage />} />
+          <Route path="/field/camera" element={<CameraPage />} />
+          <Route path="/field/control" element={<ControlPage />} />
+          <Route path="/field/alerts" element={<AlertsPage />} />
+          <Route path="/field/Camera" element={<Navigate to="/field/camera" replace />} />
+          <Route path="/field/Control" element={<Navigate to="/field/control" replace />} />
+          <Route path="/field/Alerts" element={<Navigate to="/field/alerts" replace />} />
 
           {/* git push  */}
 

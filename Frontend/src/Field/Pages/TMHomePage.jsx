@@ -1,66 +1,135 @@
-import styled from 'styled-components';
-import FieldPageShell from '../Components/FieldPageShell';
+import { useEffect, useMemo, useState } from "react";
+import styled from "styled-components";
+import FieldPageShell from "../Components/FieldPageShell";
+import { connectDashboardWebSocket, getDashboard } from "../api/fieldApi";
+import { FIELD_BATCH_ID } from "../fieldConfig";
 
 export default function TMHomePage() {
+  const [dashboard, setDashboard] = useState(null);
+  const [connected, setConnected] = useState(false);
+
+  useEffect(() => {
+    let ws;
+    let pingTimer;
+
+    const bootstrap = async () => {
+      try {
+        const initial = await getDashboard(FIELD_BATCH_ID);
+        setDashboard(initial);
+      } catch (error) {
+        console.error("Dashboard load failed:", error);
+      }
+
+      ws = connectDashboardWebSocket(FIELD_BATCH_ID, (payload) => {
+        if (
+          (payload?.type === "dashboard_init" ||
+            payload?.type === "dashboard_update") &&
+          payload.data
+        ) {
+          setDashboard(payload.data);
+          setConnected(true);
+        }
+      });
+
+      pingTimer = window.setInterval(() => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send("ping");
+        }
+      }, 5000);
+
+      ws.onclose = () => setConnected(false);
+    };
+
+    bootstrap();
+
+    return () => {
+      if (pingTimer) window.clearInterval(pingTimer);
+      if (ws && ws.readyState < 2) ws.close();
+    };
+  }, []);
+
+  const sensors = dashboard?.sensors;
+  const overview = dashboard?.overview;
+  const eventHistory = dashboard?.device_logs ?? [];
+
+  const cards = useMemo(
+    () => [
+      {
+        label: "온도",
+        value: sensors?.temperature?.value,
+        unit: sensors?.temperature?.unit || "°C",
+      },
+      {
+        label: "습도",
+        value: sensors?.humidity?.value,
+        unit: sensors?.humidity?.unit || "%",
+      },
+      {
+        label: "CO2",
+        value: sensors?.co2?.value,
+        unit: sensors?.co2?.unit || "ppm",
+      },
+      {
+        label: "토양수분",
+        value: sensors?.soil_moisture?.value,
+        unit: sensors?.soil_moisture?.unit || "%",
+      },
+    ],
+    [sensors]
+  );
+
   return (
-    <FieldPageShell title="Home" rightText="Alert 2">
+    <FieldPageShell title="Home" rightText={connected ? "LIVE" : "SYNC"}>
       <TopArea>
         <HeroCard>
-          <div className="status">AI Monitoring Active</div>
-          <h2>Sector 01 상태 정상</h2>
-          <p>현재 주요 환경 수치와 AI 비전 분석 결과가 안정 범위에 있습니다.</p>
+          <div className="status">{connected ? "WebSocket Connected" : "API Sync"}</div>
+          <h2>{overview?.summary || "환경 데이터를 불러오는 중입니다."}</h2>
+          <p>
+            배치 {FIELD_BATCH_ID} · 생육 단계 {overview?.phase || "-"} · 점수{" "}
+            {overview?.score ?? "-"}
+          </p>
         </HeroCard>
 
         <CameraCard>
           <div className="camera">Live Camera</div>
-          <div className="badge">AI Good</div>
+          <div className="badge">{connected ? "WS Live" : "Waiting"}</div>
         </CameraCard>
       </TopArea>
 
       <SectionTitle>핵심 환경 상태</SectionTitle>
       <StatusGrid>
-        <StatusCard>
-          <span>온도</span>
-          <strong>24.2°C</strong>
-        </StatusCard>
-        <StatusCard>
-          <span>습도</span>
-          <strong>65%</strong>
-        </StatusCard>
-        <StatusCard>
-          <span>CO2</span>
-          <strong>410 ppm</strong>
-        </StatusCard>
-        <StatusCard>
-          <span>토양수분</span>
-          <strong>45%</strong>
-        </StatusCard>
+        {cards.map((card) => (
+          <StatusCard key={card.label}>
+            <span>{card.label}</span>
+            <strong>
+              {card.value ?? "-"}
+              {card.value !== null && card.value !== undefined ? card.unit : ""}
+            </strong>
+          </StatusCard>
+        ))}
       </StatusGrid>
 
       <SectionTitle>빠른 조치</SectionTitle>
       <ActionGrid>
-        <ActionBtn>급수 ON</ActionBtn>
-        <ActionBtn>환기 ON</ActionBtn>
         <ActionBtn $light>자동모드</ActionBtn>
         <ActionBtn $danger>긴급정지</ActionBtn>
       </ActionGrid>
 
-      <SectionTitle>최근 알림</SectionTitle>
+      <SectionTitle>이벤트 내역</SectionTitle>
       <AlertList>
-        <AlertItem>
-          <div>
-            <h4>온도 상승 감지</h4>
-            <p>현재 온도가 목표치 상단에 근접했습니다.</p>
-          </div>
-          <time>2분 전</time>
-        </AlertItem>
-        <AlertItem>
-          <div>
-            <h4>AI 관수 증가 권장</h4>
-            <p>일사량 증가를 반영해 급수량 증가가 권장됩니다.</p>
-          </div>
-          <time>7분 전</time>
-        </AlertItem>
+        {eventHistory.length === 0 ? (
+          <EmptyText>표시할 이벤트가 없습니다.</EmptyText>
+        ) : (
+          eventHistory.slice(0, 4).map((item) => (
+            <AlertItem key={item.id}>
+              <div>
+                <h4>{item.device || "장치 이벤트"}</h4>
+                <p>{item.detail || "상세 메시지 없음"}</p>
+              </div>
+              <time>{item.time || "-"}</time>
+            </AlertItem>
+          ))
+        )}
       </AlertList>
     </FieldPageShell>
   );
@@ -213,6 +282,11 @@ const AlertList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+`;
+
+const EmptyText = styled.p`
+  color: ${({ theme }) => theme.colors.subText};
+  font-size: 14px;
 `;
 
 const AlertItem = styled.div`
