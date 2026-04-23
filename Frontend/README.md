@@ -20,3 +20,5 @@ If you are developing a production application, we recommend using TypeScript wi
 ## Field Notes
 
 - Field mobile pages are connected to backend dashboard APIs and websocket updates.
+
+- Commit note: Field backend integration synced.
