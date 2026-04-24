@@ -3,11 +3,7 @@ import styled from 'styled-components';
 import { useOutletContext } from 'react-router-dom';
 import { BaseCard, CardTitle, Flex } from './Styles/AdminShared';
 
-
-
 const API_BASE = 'http://127.0.0.1:8000/api';
-
-
 
 const DEVICE_API_MAP = {
   temp: 'heater',
@@ -16,26 +12,18 @@ const DEVICE_API_MAP = {
   pump: 'irrigation',
   nutri: 'fertigation',
   co2: 'co2_gen',
-
 };
-
-
 
 const DeviceControlPage = () => {
   const { selectedBranch } = useOutletContext();
   const [activeSector, setActiveSector] = useState(1);
   const batchId = 2;
 
-
-
   // 🚨 한글화 및 환경 목표 중심으로 세팅된 데이터
 
   const [sectorData, setSectorData] = useState({
-
     1: [
-
       {
-
         id: 'temp',
 
         name: '목표 온도',
@@ -57,11 +45,9 @@ const DeviceControlPage = () => {
         safeMax: 26,
 
         relatedDevice: '공조기, 환기팬',
-
       },
 
       {
-
         id: 'humi',
 
         name: '목표 습도',
@@ -83,11 +69,9 @@ const DeviceControlPage = () => {
         safeMax: 70,
 
         relatedDevice: '제습기, 환기팬',
-
       },
 
       {
-
         id: 'light',
 
         name: '목표 광량',
@@ -109,11 +93,9 @@ const DeviceControlPage = () => {
         safeMax: 90,
 
         relatedDevice: 'LED 시스템',
-
       },
 
       {
-
         id: 'pump',
 
         name: '일일 관수량',
@@ -135,7 +117,6 @@ const DeviceControlPage = () => {
         safeMax: 5,
 
         relatedDevice: '메인 펌프',
-
       },
 
       {
@@ -168,8 +149,6 @@ const DeviceControlPage = () => {
     ],
   });
 
-
-
   const currentDevices = sectorData[activeSector] || sectorData[1];
   const [selectedId, setSelectedId] = useState(null);
   const [logs, setLogs] = useState([]);
@@ -177,7 +156,6 @@ const DeviceControlPage = () => {
   const selectedDevice = currentDevices.find((d) => d.id === selectedId);
 
   const loadDeviceState = async () => {
-
     try {
       const res = await fetch(`${API_BASE}/control/device-state/${batchId}`);
       const text = await res.text();
@@ -185,15 +163,12 @@ const DeviceControlPage = () => {
 
       const json = JSON.parse(text);
 
-
       setSectorData((prev) => ({
         ...prev,
         [activeSector]: prev[activeSector].map((device) => {
           const apiKey = DEVICE_API_MAP[device.id];
           const serverDevice = json.devices?.[apiKey];
           if (!serverDevice) return device;
-
-          
 
           return {
             ...device,
@@ -210,26 +185,17 @@ const DeviceControlPage = () => {
     }
   };
 
-
-
   const loadLogs = async () => {
-
     try {
-
       const res = await fetch(`${API_BASE}/control/logs/${batchId}`);
 
       const text = await res.text();
 
       console.log('logs raw:', text);
 
-
-
       const json = JSON.parse(text);
 
-
-
       const mappedLogs = (json || []).map((log) => ({
-
         id: log.id,
 
         time: log.status,
@@ -237,195 +203,118 @@ const DeviceControlPage = () => {
         device: log.device,
 
         action: log.message,
-
       }));
 
-
-
       setLogs(mappedLogs);
-
     } catch (err) {
-
       console.error('logs 조회 실패', err);
-
     }
-
   };
 
-
-
   useEffect(() => {
-
     loadDeviceState();
 
     loadLogs();
-
   }, [batchId, activeSector]);
 
-
-
   const handleApply = async () => {
-
     if (!selectedDevice) return;
-
-
 
     const apiDevice = DEVICE_API_MAP[selectedDevice.id];
 
-
-
     try {
-
       await fetch(`${API_BASE}/control/device/mode/${batchId}`, {
-
         method: 'POST',
 
         headers: { 'Content-Type': 'application/json' },
 
         body: JSON.stringify({
+          device: apiDevice,
 
-        device: apiDevice,
+          mode: 'manual',
+        }),
+      });
 
-        mode: 'manual',
+      await fetch(`${API_BASE}/control/device/target/${batchId}`, {
+        method: 'POST',
 
-      }),
+        headers: { 'Content-Type': 'application/json' },
 
-    });
+        body: JSON.stringify({
+          device: apiDevice,
 
-
-
-    await fetch(`${API_BASE}/control/device/target/${batchId}`, {
-
-      method: 'POST',
-
-      headers: { 'Content-Type': 'application/json' },
-
-      body: JSON.stringify({
-
-        device: apiDevice,
-
-        value: tempValue,
-
-      }),
-
-    });
-
-
+          value: tempValue,
+        }),
+      });
 
       await loadDeviceState();
 
       await loadLogs();
 
-
-
       alert('새로운 목표 수치가 시스템에 전송되었습니다.');
-
     } catch (err) {
-
       console.error('목표 수치 적용 실패', err);
 
       alert('목표 수치 적용에 실패했습니다.');
-
     }
-
   };
 
-
-
   const handleEmergencyStop = async (id, e) => {
-
     e.stopPropagation();
-
-
 
     const targetDevice = currentDevices.find((d) => d.id === id);
 
     if (!targetDevice) return;
 
-
-
     const apiDevice = DEVICE_API_MAP[id];
 
-
-
     try {
-
       await fetch(`${API_BASE}/control/device/stop/${batchId}`, {
-
         method: 'POST',
 
         headers: { 'Content-Type': 'application/json' },
 
         body: JSON.stringify({
-
-        device: apiDevice,
-
-      }),
-
-    });
-
-
+          device: apiDevice,
+        }),
+      });
 
       await loadDeviceState();
 
       await loadLogs();
 
-
-
-      alert(`🚨 [경고] ${targetDevice.name} 연동 기기가 즉시 강제 차단되었습니다.`);
-
-    }   catch (err) {
-
+      alert(
+        `🚨 [경고] ${targetDevice.name} 연동 기기가 즉시 강제 차단되었습니다.`,
+      );
+    } catch (err) {
       console.error('긴급 정지 실패', err);
 
       alert('긴급 정지에 실패했습니다.');
-
     }
-
   };
 
   return (
-
     <>
-
       <SubMenuWrapper>
-
         {[1, 2, 3].map((num) => (
-
           <SubMenuBtn
-
             key={num}
-
             className={activeSector === num ? 'active' : ''}
-
             onClick={() => setActiveSector(num)}
-
           >
-
             {num === 1 ? `${selectedBranch} - ${num}구역` : `${num}구역`}
-
           </SubMenuBtn>
-
         ))}
-
       </SubMenuWrapper>
 
-
-
       <LayoutGrid>
-
         {/* 🚨 LeftColumn 대신 Flex 사용 */}
 
-        <Flex dir="column" gap="1.5em" style={{ minWidth: 0 }}>
-
+        <Flex $dir="column" $gap="1.5em" $style={{ minWidth: 0 }}>
           <ControlGroupCard>
-
             <div
-
               className="header-flex"
-
               style={{
-
                 display: 'flex',
 
                 justifyContent: 'space-between',
@@ -433,405 +322,233 @@ const DeviceControlPage = () => {
                 alignItems: 'center',
 
                 marginBottom: '1.2em',
-
               }}
-
             >
-
               <CardTitle style={{ margin: 0 }}>지능형 목표 수치 설정</CardTitle>
 
               <ModeBadge>마스터 권한 활성화</ModeBadge>
-
             </div>
 
-
-
             <DeviceGrid>
-
               {currentDevices.map((device) => (
-
                 <DeviceCard
-
                   key={device.id}
-
                   onClick={() => {
-
                     setSelectedId(device.id);
 
                     setTempValue(device.value);
-
                   }}
-
                   className={selectedId === device.id ? 'selected' : ''}
-
                 >
-
                   <div className="card-top">
-
                     <span className="device-name">{device.name}</span>
 
                     <div
-
                       style={{
-
                         display: 'flex',
 
                         gap: '8px',
 
                         alignItems: 'center',
-
                       }}
-
                     >
-
                       <span
-
                         className={`status-tag ${device.isAuto ? 'auto' : 'manual'}`}
-
                       >
-
                         {device.isAuto ? '자동' : '수동'}
-
                       </span>
 
                       <StopBtn
-
                         onClick={(e) => handleEmergencyStop(device.id, e)}
-
                       >
-
                         긴급 정지
-
                       </StopBtn>
-
                     </div>
-
                   </div>
 
-
-
                   <div className="card-mid">
-
                     <div className="val-box">
-
                       <span className="label">현재 목표치</span>
 
                       <span className="value">
-
                         {device.value}
 
                         {device.unit}
-
                       </span>
-
                     </div>
 
                     <div className="info-box">
-
                       <span>연동 기기: {device.relatedDevice}</span>
-
                     </div>
-
                   </div>
-
                 </DeviceCard>
-
               ))}
-
             </DeviceGrid>
-
           </ControlGroupCard>
 
-
-
           <HistoryCard>
-
             <CardTitle>씨팜 영농일지 (운영 기록)</CardTitle>
 
             <HistoryList>
-
               {logs.map((log, idx) => (
-
                 <li
-
                   key={idx}
-
                   className={log.action.includes('긴급') ? 'emergency' : ''}
-
                 >
-
                   <span className="time">{log.time}</span>
 
                   <div className="log-content">
-
                     <strong>{log.device}</strong>
 
                     <span>{log.action}</span>
-
                   </div>
-
                 </li>
-
               ))}
-
             </HistoryList>
-
           </HistoryCard>
-
         </Flex>
 
-
-
-        <Flex dir="column" style={{ minWidth: 0 }}>
-
+        <Flex $dir="column" $style={{ minWidth: 0 }}>
           <DetailCard>
-
             <CardTitle>세부 목표 수치 개입</CardTitle>
 
             {!selectedDevice ? (
-
               <EmptyState>
-
                 제어할 환경 지표를 좌측에서 선택해 주세요.
-
               </EmptyState>
-
             ) : selectedDevice.isAuto ? (
-
               <AutoLockedBox>
-
                 <div className="status-ring">
-
                   <span className="ai-icon">🤖</span>
-
                 </div>
 
                 <h3>AI 최적화 가동 중</h3>
 
                 <p>
-
                   시스템이{' '}
-
                   <strong>
-
                     {selectedDevice.safeMin}
-
                     {selectedDevice.unit} ~ {selectedDevice.safeMax}
-
                     {selectedDevice.unit}
-
                   </strong>{' '}
-
                   사이의
-
                   <br />
-
                   최적 생육 타겟을 자동 유지하고 있습니다.
-
                 </p>
 
                 <button
-
                   className="switch-btn"
-
                   onClick={(e) => {
-
                     setSectorData({
-
                       ...sectorData,
 
                       [activeSector]: sectorData[activeSector].map((d) =>
-
                         d.id === selectedId ? { ...d, isAuto: false } : d,
-
                       ),
-
                     });
-
                   }}
-
                 >
-
                   목표값 강제 개입 (수동 모드)
-
                 </button>
-
               </AutoLockedBox>
-
             ) : (
-
               <PremiumControlArea>
-
                 <div className="override-header">
-
                   <div className="title-area">
-
                     <h4>{selectedDevice.name} 강제 지정</h4>
 
                     <span className="badge">마스터 권한</span>
-
                   </div>
 
                   <p className="limit-info">
-
                     안전 허용 범위: {selectedDevice.safeMin} ~{' '}
-
                     {selectedDevice.safeMax} {selectedDevice.unit}
-
                   </p>
-
                 </div>
 
-
-
                 <div className="target-display">
-
                   <span className="target-label">새로운 목표 수치 설정</span>
 
                   <div className="number-group">
-
                     <input
-
                       type="number"
-
                       value={tempValue}
-
                       onChange={(e) => {
-
                         let val = Number(e.target.value);
 
                         if (val > selectedDevice.safeMax)
-
                           val = selectedDevice.safeMax;
 
                         if (val < selectedDevice.safeMin)
-
                           val = selectedDevice.safeMin;
 
                         setTempValue(val);
-
                       }}
-
                     />
 
                     <span className="unit">{selectedDevice.unit}</span>
-
                   </div>
-
                 </div>
-
-
 
                 {/* 🚨 뚝뚝 끊김을 완벽하게 해결한 하이엔드 슬라이더 */}
 
                 <SliderContainer
-
                   style={{
-
                     '--slider-ratio':
-
                       (tempValue - selectedDevice.safeMin) /
-
                       (selectedDevice.safeMax - selectedDevice.safeMin),
-
                   }}
-
                 >
-
                   <input
-
                     type="range"
-
                     min={selectedDevice.safeMin}
-
                     max={selectedDevice.safeMax}
-
                     step={selectedDevice.step}
-
                     value={tempValue}
-
                     onChange={(e) => setTempValue(Number(e.target.value))}
-
                   />
-
                 </SliderContainer>
 
-
-
                 <div className="slider-labels">
-
                   <span>최소 {selectedDevice.safeMin}</span>
 
                   <span>최대 {selectedDevice.safeMax}</span>
-
                 </div>
 
-
-
                 <div className="action-row">
-
                   <button
-
                     className="btn-cancel"
-
                     onClick={() => {
-
                       setSectorData({
-
                         ...sectorData,
 
                         [activeSector]: sectorData[activeSector].map((d) =>
-
                           d.id === selectedId ? { ...d, isAuto: true } : d,
-
                         ),
-
                       });
-
                     }}
-
                   >
-
                     취소 (자동 복귀)
-
                   </button>
 
                   <button className="btn-apply" onClick={handleApply}>
-
                     수치 전송 (적용)
-
                   </button>
-
                 </div>
-
               </PremiumControlArea>
-
             )}
-
           </DetailCard>
-
         </Flex>
-
       </LayoutGrid>
-
     </>
-
   );
-
 };
-
-
 
 export default DeviceControlPage;
 
-
-
 // --- 🎨 하이엔드 스타일 유지 (한글화 크기 미세 조정) ---
 
-
-
 const LayoutGrid = styled.div`
-
   flex: 1;
 
   display: grid;
@@ -843,27 +560,21 @@ const LayoutGrid = styled.div`
   min-height: 0;
 
   @media (max-width: 1024px) {
-
     display: flex;
 
     flex-direction: column;
-
   }
-
 `;
 
 const SubMenuWrapper = styled.div`
-
   display: flex;
 
   gap: 0.8em;
 
   margin-bottom: 1.5em;
-
 `;
 
 const SubMenuBtn = styled.button`
-
   padding: 0.7em 1.5em;
 
   border: 1px solid rgba(226, 232, 240, 0.8);
@@ -883,21 +594,16 @@ const SubMenuBtn = styled.button`
   box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 
   &:hover {
-
     background: #f8fafc;
 
     transform: translateY(-1px);
-
   }
 
   &:active {
-
     transform: scale(0.97);
-
   }
 
   &.active {
-
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 
     color: #fff;
@@ -905,15 +611,10 @@ const SubMenuBtn = styled.button`
     border-color: transparent;
 
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
-
   }
-
 `;
 
-
-
 const ControlGroupCard = styled(BaseCard)`
-
   flex: 2;
 
   padding: 1.5em;
@@ -923,17 +624,12 @@ const ControlGroupCard = styled(BaseCard)`
   flex-direction: column;
 
   box-shadow:
-
     0 4px 6px -1px rgba(15, 23, 42, 0.05),
-
     0 10px 15px -3px rgba(15, 23, 42, 0.05),
-
     0 0 0 1px rgba(226, 232, 240, 0.8);
-
 `;
 
 const ModeBadge = styled.span`
-
   background: #f1f5f9;
 
   color: #475569;
@@ -947,11 +643,9 @@ const ModeBadge = styled.span`
   font-weight: 800;
 
   border: 1px solid #e2e8f0;
-
 `;
 
 const DeviceGrid = styled.div`
-
   display: grid;
 
   grid-template-columns: repeat(2, 1fr);
@@ -963,35 +657,25 @@ const DeviceGrid = styled.div`
   padding-right: 5px;
 
   &::-webkit-scrollbar {
-
     width: 6px;
-
   }
 
   &::-webkit-scrollbar-track {
-
     background: transparent;
-
   }
 
   &::-webkit-scrollbar-thumb {
-
     background: #cbd5e1;
 
     border-radius: 10px;
 
     &:hover {
-
       background: #94a3b8;
-
     }
-
   }
-
 `;
 
 const DeviceCard = styled.div`
-
   margin-top: 6px;
 
   background: #f8fafc;
@@ -1007,31 +691,24 @@ const DeviceCard = styled.div`
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
-
     background: #ffffff;
 
     transform: translateY(-4px);
 
     box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.1);
-
   }
 
   &.selected {
-
     background: #ffffff;
 
     border-color: #10b981;
 
     box-shadow:
-
       0 0 0 3px rgba(16, 185, 129, 0.15),
-
       0 4px 16px rgba(16, 185, 129, 0.1);
-
   }
 
   .card-top {
-
     display: flex;
 
     justify-content: space-between;
@@ -1041,7 +718,6 @@ const DeviceCard = styled.div`
     margin-bottom: 15px;
 
     .device-name {
-
       font-weight: 800;
 
       color: #0f172a;
@@ -1049,11 +725,9 @@ const DeviceCard = styled.div`
       font-size: 1.1em;
 
       letter-spacing: -0.02em;
-
     }
 
     .status-tag {
-
       font-size: 11px;
 
       font-weight: 800;
@@ -1063,31 +737,24 @@ const DeviceCard = styled.div`
       border-radius: 8px;
 
       &.auto {
-
         background: #ecfdf5;
 
         color: #10b981;
 
         border: 1px solid #d1fae5;
-
       }
 
       &.manual {
-
         background: #fef2f2;
 
         color: #ef4444;
 
         border: 1px solid #fecaca;
-
       }
-
     }
-
   }
 
   .card-mid {
-
     display: flex;
 
     flex-direction: column;
@@ -1095,7 +762,6 @@ const DeviceCard = styled.div`
     gap: 8px;
 
     .val-box {
-
       display: flex;
 
       justify-content: space-between;
@@ -1103,29 +769,23 @@ const DeviceCard = styled.div`
       align-items: flex-end;
 
       .label {
-
         font-size: 12px;
 
         font-weight: 700;
 
         color: #64748b;
-
       }
 
       .value {
-
         font-size: 1.4em;
 
         font-weight: 900;
 
         color: #0f172a;
-
       }
-
     }
 
     .info-box {
-
       font-size: 11px;
 
       color: #94a3b8;
@@ -1135,15 +795,11 @@ const DeviceCard = styled.div`
       padding-top: 8px;
 
       border-top: 1px dashed #e2e8f0;
-
     }
-
   }
-
 `;
 
 const StopBtn = styled.button`
-
   background: #ef4444;
 
   color: #fff;
@@ -1165,35 +821,25 @@ const StopBtn = styled.button`
   transition: 0.2s;
 
   &:hover {
-
     background: #dc2626;
 
     transform: scale(1.05);
-
   }
 
   &:active {
-
     transform: scale(0.95);
-
   }
-
 `;
 
 const HistoryCard = styled(BaseCard)`
-
   flex: 1;
 
   box-shadow:
-
     0 4px 6px -1px rgba(15, 23, 42, 0.05),
-
     0 0 0 1px rgba(226, 232, 240, 0.8);
-
 `;
 
 const HistoryList = styled.ul`
-
   list-style: none;
 
   padding: 0;
@@ -1203,21 +849,16 @@ const HistoryList = styled.ul`
   overflow-y: auto;
 
   &::-webkit-scrollbar {
-
     width: 4px;
-
   }
 
   &::-webkit-scrollbar-thumb {
-
     background: #e2e8f0;
 
     border-radius: 4px;
-
   }
 
   li {
-
     display: flex;
 
     gap: 15px;
@@ -1229,7 +870,6 @@ const HistoryList = styled.ul`
     transition: background 0.2s;
 
     &.emergency {
-
       background: #fff1f2;
 
       padding-left: 10px;
@@ -1237,29 +877,21 @@ const HistoryList = styled.ul`
       border-radius: 8px;
 
       .time,
-
       strong,
-
       span {
-
         color: #e11d48;
-
       }
-
     }
 
     &:hover {
-
       background: #f8fafc;
 
       border-radius: 8px;
 
       padding-left: 8px;
-
     }
 
     .time {
-
       font-size: 12px;
 
       font-weight: 700;
@@ -1267,11 +899,9 @@ const HistoryList = styled.ul`
       color: #94a3b8;
 
       width: 60px;
-
     }
 
     .log-content {
-
       display: flex;
 
       flex-direction: column;
@@ -1281,43 +911,31 @@ const HistoryList = styled.ul`
       font-size: 13px;
 
       strong {
-
         color: #0f172a;
 
         font-weight: 800;
-
       }
 
       span {
-
         color: #64748b;
 
         font-weight: 600;
-
       }
-
     }
-
   }
-
 `;
 
 const DetailCard = styled(BaseCard)`
-
   flex: 1;
 
   padding: 1.5em;
 
   box-shadow:
-
     0 4px 6px -1px rgba(15, 23, 42, 0.05),
-
     0 0 0 1px rgba(226, 232, 240, 0.8);
-
 `;
 
 const EmptyState = styled.div`
-
   flex: 1;
 
   display: flex;
@@ -1337,11 +955,9 @@ const EmptyState = styled.div`
   border: 1px dashed #cbd5e1;
 
   min-height: 200px;
-
 `;
 
 const AutoLockedBox = styled.div`
-
   display: flex;
 
   flex-direction: column;
@@ -1359,7 +975,6 @@ const AutoLockedBox = styled.div`
   padding: 2em;
 
   .status-ring {
-
     width: 80px;
 
     height: 80px;
@@ -1379,15 +994,11 @@ const AutoLockedBox = styled.div`
     margin-bottom: 10px;
 
     .ai-icon {
-
       font-size: 36px;
-
     }
-
   }
 
   h3 {
-
     color: #0f172a;
 
     margin: 0;
@@ -1395,11 +1006,9 @@ const AutoLockedBox = styled.div`
     font-size: 1.3em;
 
     font-weight: 800;
-
   }
 
   p {
-
     font-size: 0.95em;
 
     color: #64748b;
@@ -1407,17 +1016,13 @@ const AutoLockedBox = styled.div`
     line-height: 1.6;
 
     margin: 0;
-
   }
 
   strong {
-
     color: #10b981;
-
   }
 
   .switch-btn {
-
     margin-top: 15px;
 
     padding: 12px 24px;
@@ -1439,19 +1044,14 @@ const AutoLockedBox = styled.div`
     transition: 0.2s;
 
     &:hover {
-
       transform: translateY(-2px);
 
       box-shadow: 0 6px 16px rgba(15, 23, 42, 0.3);
-
     }
-
   }
-
 `;
 
 const PremiumControlArea = styled.div`
-
   display: flex;
 
   flex-direction: column;
@@ -1459,11 +1059,9 @@ const PremiumControlArea = styled.div`
   height: 100%;
 
   .override-header {
-
     margin-bottom: 25px;
 
     .title-area {
-
       display: flex;
 
       align-items: center;
@@ -1473,7 +1071,6 @@ const PremiumControlArea = styled.div`
       margin-bottom: 6px;
 
       h4 {
-
         margin: 0;
 
         font-size: 1.1em;
@@ -1481,11 +1078,9 @@ const PremiumControlArea = styled.div`
         font-weight: 800;
 
         color: #0f172a;
-
       }
 
       .badge {
-
         background: #fee2e2;
 
         color: #dc2626;
@@ -1497,13 +1092,10 @@ const PremiumControlArea = styled.div`
         font-size: 0.75em;
 
         font-weight: 800;
-
       }
-
     }
 
     .limit-info {
-
       margin: 0;
 
       font-size: 0.8em;
@@ -1511,13 +1103,10 @@ const PremiumControlArea = styled.div`
       color: #64748b;
 
       font-weight: 600;
-
     }
-
   }
 
   .target-display {
-
     display: flex;
 
     flex-direction: column;
@@ -1537,7 +1126,6 @@ const PremiumControlArea = styled.div`
     border: 1px solid #e2e8f0;
 
     .target-label {
-
       font-size: 0.8em;
 
       font-weight: 800;
@@ -1545,11 +1133,9 @@ const PremiumControlArea = styled.div`
       color: #94a3b8;
 
       margin-bottom: 8px;
-
     }
 
     .number-group {
-
       display: flex;
 
       align-items: baseline;
@@ -1557,7 +1143,6 @@ const PremiumControlArea = styled.div`
       gap: 6px;
 
       input {
-
         width: 120px;
 
         background: transparent;
@@ -1575,31 +1160,23 @@ const PremiumControlArea = styled.div`
         text-align: center;
 
         &::-webkit-inner-spin-button {
-
           -webkit-appearance: none;
 
           margin: 0;
-
         }
-
       }
 
       .unit {
-
         font-size: 1.2em;
 
         font-weight: 700;
 
         color: #64748b;
-
       }
-
     }
-
   }
 
   .slider-labels {
-
     display: flex;
 
     justify-content: space-between;
@@ -1607,19 +1184,15 @@ const PremiumControlArea = styled.div`
     margin-bottom: auto;
 
     span {
-
       font-size: 0.75em;
 
       font-weight: 700;
 
       color: #94a3b8;
-
     }
-
   }
 
   .action-row {
-
     display: flex;
 
     gap: 12px;
@@ -1627,7 +1200,6 @@ const PremiumControlArea = styled.div`
     margin-top: 30px;
 
     button {
-
       flex: 1;
 
       padding: 14px;
@@ -1643,25 +1215,19 @@ const PremiumControlArea = styled.div`
       transition: 0.2s;
 
       border: none;
-
     }
 
     .btn-cancel {
-
       background: #f1f5f9;
 
       color: #64748b;
 
       &:hover {
-
         background: #e2e8f0;
-
       }
-
     }
 
     .btn-apply {
-
       background: #0f172a;
 
       color: #fff;
@@ -1669,25 +1235,17 @@ const PremiumControlArea = styled.div`
       box-shadow: 0 4px 10px rgba(15, 23, 42, 0.1);
 
       &:hover {
-
         background: #1e293b;
 
         transform: translateY(-2px);
-
       }
-
     }
-
   }
-
 `;
-
-
 
 // 🚨 테슬라/스마트홈 스타일의 초정밀 슬라이더 스타일
 
 const SliderContainer = styled.div`
-
   width: 100%;
 
   height: 36px;
@@ -1704,10 +1262,7 @@ const SliderContainer = styled.div`
 
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
 
-
-
   input[type='range'] {
-
     width: 100%;
 
     height: 100%;
@@ -1728,10 +1283,7 @@ const SliderContainer = styled.div`
 
     padding: 0;
 
-
-
     &::-webkit-slider-thumb {
-
       -webkit-appearance: none;
 
       width: 36px;
@@ -1749,21 +1301,14 @@ const SliderContainer = styled.div`
       cursor: grabbing;
 
       transition: 0.1s ease;
-
     }
 
     &:active::-webkit-slider-thumb {
-
       transform: scale(0.9);
-
     }
-
   }
 
-
-
   &::before {
-
     content: '';
 
     position: absolute;
@@ -1780,8 +1325,6 @@ const SliderContainer = styled.div`
 
     border-radius: 18px;
 
-
-
     /* 💡 수정된 핵심 로직: 
 
        시작점(0%)에서는 18px(정중앙)부터 출발하고, 
@@ -1791,22 +1334,15 @@ const SliderContainer = styled.div`
        중간에 드래그할 때는 게이지 끝부분이 동그라미 '안쪽'에 숨어서 따라다님. */
 
     background: linear-gradient(
-
       90deg,
-
       #10b981 0%,
 
       #10b981 calc(18px + (100% - 18px) * var(--slider-ratio)),
-
       transparent calc(18px + (100% - 18px) * var(--slider-ratio))
-
     );
 
     pointer-events: none;
 
     z-index: 5;
-
   }
-
 `;
-
