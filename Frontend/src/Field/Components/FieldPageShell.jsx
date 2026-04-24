@@ -3,15 +3,26 @@ import styled from 'styled-components';
 import MobileHeader from './MobileHeader';
 import SideDrawer from './SideDrawer';
 
-export default function FieldPageShell({ title, rightText, children }) {
+export default function FieldPageShell({
+  title,
+  rightText,
+  children,
+  selectedSector = 'A룸',
+  onSectorChange,
+}) {
   const [open, setOpen] = useState(false);
+
+  const onMenuClick = () => {
+    setOpen(true);
+  };
 
   return (
     <Page>
       <MobileHeader
-        onMenuClick={() => setOpen(true)}
-        title={title}
+        onMenuClick={onMenuClick}
         rightText={rightText}
+        selectedSector={selectedSector}
+        onSectorChange={onSectorChange}
       />
       <SideDrawer open={open} onClose={() => setOpen(false)} />
       <Body>{children}</Body>

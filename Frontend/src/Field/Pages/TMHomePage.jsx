@@ -1,12 +1,61 @@
-import { useEffect, useMemo, useState } from "react";
-import styled from "styled-components";
-import FieldPageShell from "../Components/FieldPageShell";
-import { connectDashboardWebSocket, getDashboard } from "../api/fieldApi";
-import { FIELD_BATCH_ID } from "../fieldConfig";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import styled from 'styled-components';
+import FieldPageShell from '../Components/FieldPageShell';
+import { connectDashboardWebSocket, getDashboard } from '../api/fieldApi';
+import { FIELD_BATCH_ID } from '../fieldConfig';
+import c1 from '../../Admin/image/cctv1.png';
+import fallback from '../../Admin/image/fallback.jpg';
 
 export default function TMHomePage() {
   const [dashboard, setDashboard] = useState(null);
   const [connected, setConnected] = useState(false);
+  const [activeRoom, setActiveRoom] = useState('A룸');
+  const [isRetrying, setIsRetrying] = useState(false);
+  const retryTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleRetryCamera = () => {
+    setIsRetrying(true);
+
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+    }
+
+    retryTimerRef.current = setTimeout(() => {
+      setIsRetrying(false);
+    }, 2000);
+  };
+
+  const rooms = {
+    A룸: {
+      branch: 'A동',
+      status: 'Live',
+      image: c1,
+      updatedAt: '방금 전',
+    },
+    B룸: {
+      branch: 'B동',
+      status: 'Warning',
+      image: fallback,
+      updatedAt: '2분 전',
+    },
+    C룸: {
+      branch: 'C동',
+      status: 'Warning',
+      image: fallback,
+      updatedAt: '3분 전',
+    },
+  };
+
+  const currentRoom = rooms[activeRoom] || rooms['A룸'];
+  const isCameraLive = currentRoom.status === 'Live';
 
   useEffect(() => {
     let ws;
@@ -17,13 +66,13 @@ export default function TMHomePage() {
         const initial = await getDashboard(FIELD_BATCH_ID);
         setDashboard(initial);
       } catch (error) {
-        console.error("Dashboard load failed:", error);
+        console.error('Dashboard load failed:', error);
       }
 
       ws = connectDashboardWebSocket(FIELD_BATCH_ID, (payload) => {
         if (
-          (payload?.type === "dashboard_init" ||
-            payload?.type === "dashboard_update") &&
+          (payload?.type === 'dashboard_init' ||
+            payload?.type === 'dashboard_update') &&
           payload.data
         ) {
           setDashboard(payload.data);
@@ -33,7 +82,7 @@ export default function TMHomePage() {
 
       pingTimer = window.setInterval(() => {
         if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send("ping");
+          ws.send('ping');
         }
       }, 5000);
 
@@ -55,44 +104,90 @@ export default function TMHomePage() {
   const cards = useMemo(
     () => [
       {
-        label: "온도",
+        label: '온도',
         value: sensors?.temperature?.value,
-        unit: sensors?.temperature?.unit || "°C",
+        unit: sensors?.temperature?.unit || '°C',
       },
       {
-        label: "습도",
+        label: '습도',
         value: sensors?.humidity?.value,
-        unit: sensors?.humidity?.unit || "%",
+        unit: sensors?.humidity?.unit || '%',
       },
       {
-        label: "CO2",
+        label: 'CO2',
         value: sensors?.co2?.value,
-        unit: sensors?.co2?.unit || "ppm",
+        unit: sensors?.co2?.unit || 'ppm',
       },
       {
-        label: "토양수분",
+        label: '토양수분',
         value: sensors?.soil_moisture?.value,
-        unit: sensors?.soil_moisture?.unit || "%",
+        unit: sensors?.soil_moisture?.unit || '%',
       },
     ],
-    [sensors]
+    [sensors],
   );
 
   return (
-    <FieldPageShell title="Home" rightText={connected ? "LIVE" : "SYNC"}>
+    <FieldPageShell
+      title="Home"
+      rightText={connected ? 'LIVE' : 'SYNC'}
+      selectedSector={activeRoom}
+      onSectorChange={setActiveRoom}
+    >
       <TopArea>
         <HeroCard>
-          <div className="status">{connected ? "WebSocket Connected" : "API Sync"}</div>
-          <h2>{overview?.summary || "환경 데이터를 불러오는 중입니다."}</h2>
+          <div className="status">
+            {connected ? 'WebSocket Connected' : 'API Sync'}
+          </div>
+          <h2>{overview?.summary || '환경 데이터를 불러오는 중입니다.'}</h2>
           <p>
-            배치 {FIELD_BATCH_ID} · 생육 단계 {overview?.phase || "-"} · 점수{" "}
-            {overview?.score ?? "-"}
+            배치 {FIELD_BATCH_ID} · 생육 단계 {overview?.phase || '-'} · 점수{' '}
+            {overview?.score ?? '-'}
           </p>
         </HeroCard>
-
         <CameraCard>
-          <div className="camera">Live Camera</div>
-          <div className="badge">{connected ? "WS Live" : "Waiting"}</div>
+          <div className="camera-view">
+            {isRetrying ? (
+              <div className="camera-overlay">
+                <div className="overlay-content">
+                  <div className="overlay-badge retry">재연결 중</div>
+                  <strong>실시간 영상 스트리밍 연결 중...</strong>
+                  <span>카메라 신호를 다시 확인하고 있습니다.</span>
+                </div>
+              </div>
+            ) : isCameraLive ? (
+              <img
+                src={currentRoom.image}
+                alt={`${currentRoom.branch} CCTV`}
+                className="camera-image"
+              />
+            ) : (
+              <>
+                <div
+                  className="camera-fallback-bg"
+                  style={{ backgroundImage: `url(${fallback})` }}
+                />
+
+                <div className="camera-overlay">
+                  <div className="overlay-content">
+                    <div className="overlay-badge">신호 없음</div>
+                    <strong>카메라 연결이 불안정합니다</strong>
+                    <span>현재 영상을 불러오지 못했습니다.</span>
+
+                    <button className="retry-btn" onClick={handleRetryCamera}>
+                      연결 재시도
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className={`badge ${isCameraLive ? 'live' : 'warning'}`}>
+            {isRetrying ? 'CONNECTING' : isCameraLive ? 'LIVE' : 'SIGNAL WEAK'}
+          </div>
+
+          <div className="room-badge">{currentRoom.branch}</div>
         </CameraCard>
       </TopArea>
 
@@ -102,8 +197,8 @@ export default function TMHomePage() {
           <StatusCard key={card.label}>
             <span>{card.label}</span>
             <strong>
-              {card.value ?? "-"}
-              {card.value !== null && card.value !== undefined ? card.unit : ""}
+              {card.value ?? '-'}
+              {card.value !== null && card.value !== undefined ? card.unit : ''}
             </strong>
           </StatusCard>
         ))}
@@ -123,10 +218,10 @@ export default function TMHomePage() {
           eventHistory.slice(0, 4).map((item) => (
             <AlertItem key={item.id}>
               <div>
-                <h4>{item.device || "장치 이벤트"}</h4>
-                <p>{item.detail || "상세 메시지 없음"}</p>
+                <h4>{item.device || '장치 이벤트'}</h4>
+                <p>{item.detail || '상세 메시지 없음'}</p>
               </div>
-              <time>{item.time || "-"}</time>
+              <time>{item.time || '-'}</time>
             </AlertItem>
           ))
         )}
@@ -187,17 +282,89 @@ const CameraCard = styled.div`
   height: 190px;
   border-radius: 20px;
   overflow: hidden;
-  background: ${({ theme }) => theme.colors.white};
+  background: #0f172a;
 
-  .camera {
+  .retry-btn {
+    margin-top: 10px;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 14px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .overlay-badge.retry {
+    background: rgba(59, 130, 246, 0.16);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    color: #bfdbfe;
+  }
+
+  .camera-view {
+    position: relative;
+    width: 100%;
     height: 100%;
-    background: #d1d5db;
+    overflow: hidden;
+    background: #0f172a;
+  }
+
+  .camera-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .camera-fallback-bg {
+    position: absolute;
+    inset: 0;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    filter: blur(3px) brightness(0.65);
+    transform: scale(1.04);
+  }
+
+  .camera-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.42);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #374151;
+    padding: 18px;
+  }
+
+  .overlay-content {
+    color: #ffffff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+
+    strong {
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    span {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.78);
+    }
+  }
+
+  .overlay-badge {
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(239, 68, 68, 0.16);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fecaca;
+    font-size: 11px;
     font-weight: 800;
-    font-size: 18px;
   }
 
   .badge {
@@ -210,6 +377,28 @@ const CameraCard = styled.div`
     color: #fff;
     font-size: 12px;
     font-weight: 800;
+    z-index: 3;
+
+    &.live {
+      color: #fecaca;
+    }
+
+    &.warning {
+      color: #fde68a;
+    }
+  }
+
+  .room-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 8px 11px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.82);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    z-index: 3;
   }
 
   @media (min-width: 768px) {

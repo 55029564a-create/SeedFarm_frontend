@@ -1,18 +1,25 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-export default function MobileHeader({ onMenuClick, rightText = 'Alert 2' }) {
-  // 🚨 구역(Sector) 선택을 위한 상태 추가
+export default function MobileHeader({
+  onMenuClick,
+  rightText = 'Alert 2',
+  selectedSector = 'A룸',
+  onSectorChange,
+}) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedSector, setSelectedSector] = useState('Sector 01');
 
-  const sectors = ['Sector 01', 'Sector 02', 'Sector 03', 'Sector 04'];
+  const sectors = ['A룸', 'B룸', 'C룸'];
+
+  const handleSelect = (sector) => {
+    setIsDropdownOpen(false);
+    onSectorChange?.(sector);
+  };
 
   return (
     <Header>
       <Left>
         <MenuButton onClick={onMenuClick}>
-          {/* 텍스트 ☰ 대신 깔끔한 SVG 햄버거 아이콘으로 업그레이드 */}
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -21,13 +28,12 @@ export default function MobileHeader({ onMenuClick, rightText = 'Alert 2' }) {
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <line x1="4" y1="12" x2="20" y2="12"></line>
-            <line x1="4" y1="6" x2="20" y2="6"></line>
-            <line x1="4" y1="18" x2="20" y2="18"></line>
+            <line x1="4" y1="12" x2="20" y2="12" />
+            <line x1="4" y1="6" x2="20" y2="6" />
+            <line x1="4" y1="18" x2="20" y2="18" />
           </svg>
         </MenuButton>
 
-        {/* 🚨 PC 헤더처럼 모바일에서도 구역을 선택할 수 있는 드롭다운 추가 */}
         <DropdownWrapper>
           <SelectorBtn onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
             <Title>{selectedSector}</Title>
@@ -37,15 +43,13 @@ export default function MobileHeader({ onMenuClick, rightText = 'Alert 2' }) {
           {isDropdownOpen && (
             <>
               <Backdrop onClick={() => setIsDropdownOpen(false)} />
+
               <DropdownMenu>
                 {sectors.map((sector) => (
                   <MenuItem
                     key={sector}
                     $active={selectedSector === sector}
-                    onClick={() => {
-                      setSelectedSector(sector);
-                      setIsDropdownOpen(false);
-                    }}
+                    onClick={() => handleSelect(sector)}
                   >
                     {sector}
                     {selectedSector === sector && (
@@ -60,14 +64,16 @@ export default function MobileHeader({ onMenuClick, rightText = 'Alert 2' }) {
       </Left>
 
       <Badge>
-        <span className="pulse-dot"></span>
+        <span className="pulse-dot" />
         {rightText}
       </Badge>
     </Header>
   );
 }
 
-// --- 🎨 스타일링 ---
+// styled 부분은 기존 그대로 사용
+
+// ---------------- styled ----------------
 
 const Header = styled.header`
   height: 56px;
@@ -78,7 +84,7 @@ const Header = styled.header`
   padding: 0 14px;
   background: ${({ theme }) => theme.colors.white};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  position: relative; /* 드롭다운 기준점 */
+  position: relative;
   z-index: 90;
 `;
 
@@ -97,7 +103,6 @@ const MenuButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: 0.2s;
 
   svg {
     width: 20px;
@@ -109,8 +114,6 @@ const MenuButton = styled.button`
   }
 `;
 
-// --- 🚨 드롭다운 관련 스타일 ---
-
 const DropdownWrapper = styled.div`
   position: relative;
 `;
@@ -121,7 +124,6 @@ const SelectorBtn = styled.button`
   gap: 6px;
   padding: 6px 8px;
   border-radius: 8px;
-  transition: 0.2s;
 
   .arrow {
     font-size: 14px;
@@ -159,18 +161,6 @@ const DropdownMenu = styled.div`
   display: flex;
   flex-direction: column;
   padding: 6px;
-  animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 `;
 
 const MenuItem = styled.button`
@@ -187,16 +177,10 @@ const MenuItem = styled.button`
   background: ${({ $active, theme }) =>
     $active ? theme.colors.successBg : 'transparent'};
 
-  .check {
-    font-size: 12px;
-  }
-
   &:active {
     background: ${({ theme }) => theme.colors.soft};
   }
 `;
-
-// --- 🚨 배지(Alert) 스타일 디테일 업 ---
 
 const Badge = styled.button`
   display: flex;
@@ -210,27 +194,10 @@ const Badge = styled.button`
   font-weight: 800;
   border: 1px solid rgba(220, 38, 38, 0.2);
 
-  /* 살아있는 알림 느낌을 주는 맥박(Pulse) 애니메이션 점 */
   .pulse-dot {
     width: 6px;
     height: 6px;
     background-color: ${({ theme }) => theme.colors.danger};
     border-radius: 50%;
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
-    }
-    70% {
-      transform: scale(1);
-      box-shadow: 0 0 0 4px rgba(220, 38, 38, 0);
-    }
-    100% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
-    }
   }
 `;
