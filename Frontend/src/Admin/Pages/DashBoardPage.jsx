@@ -51,7 +51,7 @@ const DashboardPage = () => {
   const { selectedBranch } = useOutletContext();
 
   // 우선 테스트용으로 고정
-  const batchId = 2;
+  const batchId = 1;
 
   const [serverDashboard, setServerDashboard] = useState(null);
   const wsRef = useRef(null);
@@ -402,7 +402,10 @@ const DashboardPage = () => {
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        console.log('dashboard ws message:', message);
+        console.log('dashboard ws type:', message.type);
+        console.log('dashboard ws data:', message.data);
+        console.log('dashboard ws sensors:', message.data?.sensors);
+        console.log('dashboard ws device_logs:', message.data?.device_logs);
 
         if (
           message.type === 'dashboard_init' ||
