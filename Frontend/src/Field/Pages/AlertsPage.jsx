@@ -5,12 +5,14 @@ import { getDashboard } from "../api/fieldApi";
 import { FIELD_BATCH_ID } from "../fieldConfig";
 
 export default function AlertsPage() {
+  const [events, setEvents] = useState([]);
   const [logs, setLogs] = useState([]);
 
   useEffect(() => {
     const load = async () => {
       try {
         const data = await getDashboard(FIELD_BATCH_ID);
+        setEvents(data?.ai_reports ?? []);
         setLogs(data?.device_logs ?? []);
       } catch (error) {
         console.error("Alert logs load failed:", error);
@@ -20,14 +22,19 @@ export default function AlertsPage() {
   }, []);
 
   const summary = useMemo(() => {
+    const eventTotal = events.filter((event) =>
+      ["disease", "flowering", "harvest"].includes(
+        (event.result_type || "").toLowerCase()
+      )
+    ).length;
     const critical = logs.filter((log) =>
       ["fail", "triggered"].includes((log.status || "").toLowerCase())
     ).length;
     const normal = logs.filter(
       (log) => !["fail", "triggered"].includes((log.status || "").toLowerCase())
     ).length;
-    return { critical, normal, total: logs.length };
-  }, [logs]);
+    return { critical, normal, total: logs.length, eventTotal };
+  }, [events, logs]);
 
   return (
     <FieldPageShell title="Alerts" rightText={`${summary.total} Logs`}>
@@ -41,8 +48,8 @@ export default function AlertsPage() {
           <strong>{summary.normal}</strong>
         </SummaryCard>
         <SummaryCard>
-          <span>Total</span>
-          <strong>{summary.total}</strong>
+          <span>Event</span>
+          <strong>{summary.eventTotal}</strong>
         </SummaryCard>
       </TopSummary>
 
@@ -52,10 +59,48 @@ export default function AlertsPage() {
         <p>이 페이지는 텔레그램으로 발송된 경고/동작의 최근 이력을 보여줍니다.</p>
       </PrimaryAlert>
 
-      <SectionTitle>경고/이벤트 이력</SectionTitle>
+      <SectionTitle>이벤트 이력 (병/개화/수확시기)</SectionTitle>
 
       <AlertList>
-        {logs.length === 0 && <EmptyText>아직 수집된 이력이 없습니다.</EmptyText>}
+        {events.length === 0 && (
+          <EmptyCard>
+            <div className="title">아직 수집된 이벤트가 없습니다.</div>
+            <div className="desc">병/개화/수확시기 이벤트가 발생하면 여기에 표시됩니다.</div>
+          </EmptyCard>
+        )}
+        {events.map((item) => (
+          <AlertCard
+            key={`event-${item.id}`}
+            $level={item.level === "경고" ? "danger" : "normal"}
+          >
+            <div className="top">
+              <div className="left">
+                <div className="title">
+                  {item.result_type || "event"}: {item.result_value || "-"}
+                </div>
+                <div className="desc">{item.title || "이벤트 메시지 없음"}</div>
+              </div>
+              <div className="time">{item.time || "-"}</div>
+            </div>
+
+            <div className="bottom">
+              <div className="action">
+                confidence: {item.confidence ?? "-"} / severity: {item.severity ?? "-"}
+              </div>
+            </div>
+          </AlertCard>
+        ))}
+      </AlertList>
+
+      <SectionTitle>디바이스 가동내역</SectionTitle>
+
+      <AlertList>
+        {logs.length === 0 && (
+          <EmptyCard>
+            <div className="title">아직 수집된 이력이 없습니다.</div>
+            <div className="desc">디바이스 가동내역이 생기면 이 영역에 누적됩니다.</div>
+          </EmptyCard>
+        )}
         {logs.map((item) => (
           <AlertCard
             key={item.id}
@@ -157,9 +202,24 @@ const AlertList = styled.div`
   gap: 10px;
 `;
 
-const EmptyText = styled.p`
-  color: #6b7280;
-  font-size: 14px;
+const EmptyCard = styled.div`
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 14px;
+  border-left: 5px solid #cbd5e1;
+
+  .title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 6px;
+  }
+
+  .desc {
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.4;
+  }
 `;
 
 const AlertCard = styled.div`
