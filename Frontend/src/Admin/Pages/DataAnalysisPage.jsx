@@ -607,7 +607,6 @@ const DataAnalysisPage = () => {
                 <div className="chart-legend">
                   <span className="legend-item mint">평균 초장</span>
                   <span className="legend-item purple">목표 기준</span>
-                  <span className="legend-item warning">주의 구간</span>
                 </div>
               </div>
 
@@ -620,18 +619,6 @@ const DataAnalysisPage = () => {
 
                 <GraphArea onMouseLeave={() => setHoverInfo(null)}>
                   <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <rect
-                      x="0"
-                      y={getY(90, maxHeight, minHeight)}
-                      width="100"
-                      height={
-                        getY(70, maxHeight, minHeight) -
-                        getY(90, maxHeight, minHeight)
-                      }
-                      fill="#16a34a"
-                      opacity="0.1"
-                    />
-
                     {[10, 30, 50, 70, 90].map((y) => (
                       <line
                         key={y}
@@ -643,26 +630,7 @@ const DataAnalysisPage = () => {
                       />
                     ))}
 
-                    <line
-                      x1="0"
-                      y1={getY(90, maxHeight, minHeight)}
-                      x2="100"
-                      y2={getY(90, maxHeight, minHeight)}
-                      className="limit-line purple"
-                    />
-
-                    <line
-                      x1="0"
-                      y1={getY(70, maxHeight, minHeight)}
-                      x2="100"
-                      y2={getY(70, maxHeight, minHeight)}
-                      className="limit-line warning"
-                    />
-
-                    <path
-                      d={stdHeightPath}
-                      className="chart-line purple dashed"
-                    />
+                    <path d={stdHeightPath} className="limit-line purple" />
                     <path d={heightPath} className="chart-line mint" />
 
                     {activeChartData.map((d, i) => {
@@ -1219,7 +1187,8 @@ const GraphArea = styled.div`
     }
 
     &.purple {
-      stroke: #7c3aed;
+      stroke: #8b5cf6;
+      opacity: 0.6;
     }
 
     &.dashed {
