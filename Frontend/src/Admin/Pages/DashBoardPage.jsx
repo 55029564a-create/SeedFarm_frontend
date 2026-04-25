@@ -940,7 +940,7 @@ const BaseCard = styled.div`
 
 const PageGrid = styled.div`
   --grid-gap: 1.1em;
-  --bottom-height: 548px;
+  --bottom-height: 690px;
 
   flex: 1;
   display: flex;
@@ -1385,10 +1385,10 @@ const CameraCard = styled(BaseCard)`
 `;
 
 const LogGroupCard = styled(BaseCard)`
-  flex: 0 0 380px;
-  height: 430px;
-  min-height: 380px;
-  max-height: 380px;
+  flex: 0 0 400px;
+  height: 400px;
+  min-height: 400px;
+  max-height: 400px;
   overflow: hidden;
 
   .log-header {
@@ -1412,9 +1412,9 @@ const LogGroupCard = styled(BaseCard)`
 
 const AILogGroupCard = styled(BaseCard)`
   flex: 1;
-  height: calc(var(--bottom-height) - 340px - var(--grid-gap));
+  height: calc(var(--bottom-height) - 400px - var(--grid-gap));
   min-height: 0;
-  max-height: calc(var(--bottom-height) - 340px - var(--grid-gap));
+  max-height: calc(var(--bottom-height) - 400px - var(--grid-gap));
   padding: 0.95em 1em;
   overflow: hidden;
 
@@ -1458,7 +1458,7 @@ const AILogGroupCard = styled(BaseCard)`
     font-size: 0.95em;
     font-weight: 800;
     color: #0f172a;
-    margin-bottom: 14px;
+    margin-bottom: 8px;
   }
 `;
 
@@ -1860,16 +1860,20 @@ const AILogItem = styled.div`
 `;
 
 const GrowthBarsContainer = styled.div`
+  flex: 1;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  margin-top: 4px;
+  justify-content: center; /* 핵심 */
+  gap: 24px;
+  padding: 6px 0;
 
   .bar-row {
     display: grid;
     grid-template-columns: 72px 1fr 58px;
     align-items: center;
     gap: 10px;
+    width: 100%;
   }
 
   .time-label {
@@ -1893,11 +1897,9 @@ const GrowthBarsContainer = styled.div`
     &.day {
       background: #38bdf8;
     }
-
     &.week {
       background: #3b82f6;
     }
-
     &.month {
       background: #6366f1;
     }
