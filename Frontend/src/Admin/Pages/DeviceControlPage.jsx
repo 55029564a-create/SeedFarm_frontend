@@ -2,8 +2,12 @@ import React, { useState, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
 import { useOutletContext } from 'react-router-dom';
 import { BaseCard, CardTitle, Flex } from './Styles/AdminShared';
-
-const API_BASE = 'http://127.0.0.1:8000/api';
+import {getDeviceState,
+  setDeviceMode,
+  setDeviceTarget,
+  stopDevice,
+  getControlLogs}
+  from '../../api/control';
 
 const DEVICE_API_MAP = {
   temp: 'heater',
@@ -17,172 +21,273 @@ const DEVICE_API_MAP = {
 const DeviceControlPage = () => {
   const { selectedBranch } = useOutletContext();
   const [activeSector, setActiveSector] = useState(1);
-  const batchId = 2;
+  const batchId = 1;
 
   // 🚨 한글화 및 환경 목표 중심으로 세팅된 데이터
 
-  const [sectorData, setSectorData] = useState({
+  const sectorData = {
     1: [
       {
         id: 'temp',
-
         name: '목표 온도',
-
-        isAuto: true,
-
-        value: 22.0,
-
         unit: '°C',
-
         min: 10,
-
         max: 35,
-
         step: 0.5,
-
         safeMin: 18,
-
         safeMax: 26,
-
-        relatedDevice: '공조기, 환기팬',
+        relatedDevice: 'heater, cooler',
       },
-
       {
         id: 'humi',
-
         name: '목표 습도',
-
-        isAuto: true,
-
-        value: 65,
-
         unit: '%',
-
         min: 30,
-
         max: 90,
-
         step: 1,
-
         safeMin: 50,
-
         safeMax: 70,
-
-        relatedDevice: '제습기, 환기팬',
+        relatedDevice: 'humidifier',
       },
-
       {
         id: 'light',
-
         name: '목표 광량',
-
-        isAuto: true,
-
-        value: 80,
-
         unit: '%',
-
         min: 0,
-
         max: 100,
-
         step: 1,
-
         safeMin: 60,
-
         safeMax: 90,
-
-        relatedDevice: 'LED 시스템',
+        relatedDevice: 'light',
       },
-
       {
         id: 'pump',
-
         name: '일일 관수량',
-
-        isAuto: true,
-
-        value: 2.5,
-
         unit: 'L',
-
         min: 0,
-
         max: 10,
-
         step: 0.5,
-
         safeMin: 1,
-
         safeMax: 5,
-
-        relatedDevice: '메인 펌프',
+        relatedDevice: 'irrigation',
       },
-
       {
         id: 'nutri',
         name: '양액 농도 (EC)',
-        isAuto: true,
-        value: 1.2,
         unit: 'EC',
         min: 0.5,
         max: 3.0,
         step: 0.1,
         safeMin: 1.0,
         safeMax: 1.8,
-        relatedDevice: '양액 배합기',
+        relatedDevice: 'fetigation',
       },
-
       {
         id: 'co2',
         name: '대기 CO2 농도',
-        isAuto: false,
-        value: 800,
         unit: 'ppm',
         min: 400,
         max: 1500,
         step: 10,
         safeMin: 700,
         safeMax: 1200,
-        relatedDevice: 'CO2 발생기',
+        relatedDevice: 'co2_gen',
       },
     ],
-  });
 
-  const currentDevices = sectorData[activeSector] || sectorData[1];
+    2: [
+      {
+        id: 'temp',
+        name: '목표 온도',
+        unit: '°C',
+        min: 10,
+        max: 35,
+        step: 0.5,
+        safeMin: 18,
+        safeMax: 26,
+        relatedDevice: 'heater, cooler',
+      },
+      {
+        id: 'humi',
+        name: '목표 습도',
+        unit: '%',
+        min: 30,
+        max: 90,
+        step: 1,
+        safeMin: 50,
+        safeMax: 70,
+        relatedDevice: 'humidifier',
+      },
+      {
+        id: 'light',
+        name: '목표 광량',
+        unit: '%',
+        min: 0,
+        max: 100,
+        step: 1,
+        safeMin: 60,
+        safeMax: 90,
+        relatedDevice: 'light',
+      },
+      {
+        id: 'pump',
+        name: '일일 관수량',
+        unit: 'L',
+        min: 0,
+        max: 10,
+        step: 0.5,
+        safeMin: 1,
+        safeMax: 5,
+        relatedDevice: 'irrigation',
+      },
+      {
+        id: 'nutri',
+        name: '양액 농도 (EC)',
+        unit: 'EC',
+        min: 0.5,
+        max: 3.0,
+        step: 0.1,
+        safeMin: 1.0,
+        safeMax: 1.8,
+        relatedDevice: 'fetigation',
+      },
+      {
+        id: 'co2',
+        name: '대기 CO2 농도',
+        unit: 'ppm',
+        min: 400,
+        max: 1500,
+        step: 10,
+        safeMin: 700,
+        safeMax: 1200,
+        relatedDevice: 'co2_gen',
+      },
+    ],
+
+    3: [
+      {
+        id: 'temp',
+        name: '목표 온도',
+        unit: '°C',
+        min: 10,
+        max: 35,
+        step: 0.5,
+        safeMin: 18,
+        safeMax: 26,
+        relatedDevice: 'heater, cooler',
+      },
+      {
+        id: 'humi',
+        name: '목표 습도',
+        unit: '%',
+        min: 30,
+        max: 90,
+        step: 1,
+        safeMin: 50,
+        safeMax: 70,
+        relatedDevice: 'humidifier',
+      },
+      {
+        id: 'light',
+        name: '목표 광량',
+        unit: '%',
+        min: 0,
+        max: 100,
+        step: 1,
+        safeMin: 60,
+        safeMax: 90,
+        relatedDevice: 'light',
+      },
+      {
+        id: 'pump',
+        name: '일일 관수량',
+        unit: 'L',
+        min: 0,
+        max: 10,
+        step: 0.5,
+        safeMin: 1,
+        safeMax: 5,
+        relatedDevice: 'irrigation',
+      },
+      {
+        id: 'nutri',
+        name: '양액 농도 (EC)',
+        unit: 'EC',
+        min: 0.5,
+        max: 3.0,
+        step: 0.1,
+        safeMin: 1.0,
+        safeMax: 1.8,
+        relatedDevice: 'fetigation',
+      },
+      {
+        id: 'co2',
+        name: '대기 CO2 농도',
+        unit: 'ppm',
+        min: 400,
+        max: 1500,
+        step: 10,
+        safeMin: 700,
+        safeMax: 1200,
+        relatedDevice: 'co2_gen',
+      },
+    ],
+  };
+
+  const [deviceState, setDeviceState] = useState({});
   const [selectedId, setSelectedId] = useState(null);
   const [logs, setLogs] = useState([]);
-  const [tempValue, setTempValue] = useState(null);
-  const selectedDevice = currentDevices.find((d) => d.id === selectedId);
+  const [isOverrideMode, setIsOverrideMode] = useState(false);
+  const [tempValue, setTempValue] = useState(0);
+  
+
+
+  const currentDevices = (sectorData[activeSector] || []).map((config) => {
+    const apiKey = DEVICE_API_MAP[config.id];
+    const server = deviceState[activeSector]?.[apiKey];
+
+    return {
+      ...config,
+      isAuto: server ? server.mode !== 'manual' : true,
+      value:
+        server && server.target !== null && server.target !== undefined
+          ? server.target
+          : config.min,
+    };
+  });
+
+  const selectedDevice = useMemo(() => {
+    return currentDevices.find((d) => d.id === selectedId);
+  }, [currentDevices, selectedId]);
+
+
+  useEffect(() => {
+    if (selectedDevice && tempValue === null) {
+      setTempValue(selectedDevice.value);
+    }
+  }, [selectedDevice]);
+
 
   const loadDeviceState = async () => {
     try {
-      const res = await fetch(`${API_BASE}/control/device-state/${batchId}`);
-      const text = await res.text();
-      console.log('device-state raw:', text);
-
-      const json = JSON.parse(text);
-
-      setSectorData((prev) => ({
-        ...prev,
-        [activeSector]: prev[activeSector].map((device) => {
-          const apiKey = DEVICE_API_MAP[device.id];
-          const serverDevice = json.devices?.[apiKey];
-          if (!serverDevice) return device;
-
-          return {
-            ...device,
-            isAuto: serverDevice.mode !== 'manual',
-            value:
-              serverDevice.target !== null && serverDevice.target !== undefined
-                ? serverDevice.target
-                : device.value,
-          };
-        }),
-      }));
+      const data = await getDeviceState(batchId);
+      setDeviceState(data.devices || {});
     } catch (err) {
       console.error('device-state 조회 실패', err);
     }
+  };
+
+
+  const handleSwitchToManual = () => {
+    setIsOverrideMode(true);
+  };
+
+
+  const handleSwitchToAuto = async () => {
+    if (!selectedDevice) return;    
+    const apiDevice = DEVICE_API_MAP[selectedDevice.id];
+    await setDeviceMode(batchId, apiDevice, 'auto');
+    await loadDeviceState();
   };
 
   const loadLogs = async () => {
@@ -223,39 +328,16 @@ const DeviceControlPage = () => {
     const apiDevice = DEVICE_API_MAP[selectedDevice.id];
 
     try {
-      await fetch(`${API_BASE}/control/device/mode/${batchId}`, {
-        method: 'POST',
-
-        headers: { 'Content-Type': 'application/json' },
-
-        body: JSON.stringify({
-          device: apiDevice,
-
-          mode: 'manual',
-        }),
-      });
-
-      await fetch(`${API_BASE}/control/device/target/${batchId}`, {
-        method: 'POST',
-
-        headers: { 'Content-Type': 'application/json' },
-
-        body: JSON.stringify({
-          device: apiDevice,
-
-          value: tempValue,
-        }),
-      });
+      await setDeviceMode(batchId, apiDevice, 'manual');
+      await setDeviceTarget(batchId, apiDevice, tempValue);
 
       await loadDeviceState();
-
       await loadLogs();
 
       alert('새로운 목표 수치가 시스템에 전송되었습니다.');
     } catch (err) {
-      console.error('목표 수치 적용 실패', err);
-
-      alert('목표 수치 적용에 실패했습니다.');
+      console.error(err);
+      alert('목표 수치 적용 실패');
     }
   };
 
@@ -263,35 +345,40 @@ const DeviceControlPage = () => {
     e.stopPropagation();
 
     const targetDevice = currentDevices.find((d) => d.id === id);
-
     if (!targetDevice) return;
 
     const apiDevice = DEVICE_API_MAP[id];
 
     try {
-      await fetch(`${API_BASE}/control/device/stop/${batchId}`, {
-        method: 'POST',
-
-        headers: { 'Content-Type': 'application/json' },
-
-        body: JSON.stringify({
-          device: apiDevice,
-        }),
-      });
+      await stopDevice(batchId, apiDevice);
 
       await loadDeviceState();
-
       await loadLogs();
 
-      alert(
-        `🚨 [경고] ${targetDevice.name} 연동 기기가 즉시 강제 차단되었습니다.`,
-      );
+      alert( `🚨 [경고] ${targetDevice.name} 연동 기기가 즉시 강제 차단되었습니다.`,);
     } catch (err) {
       console.error('긴급 정지 실패', err);
-
       alert('긴급 정지에 실패했습니다.');
     }
   };
+
+
+  // 취소 버튼에서 복귀
+  const handleCancel = () => {
+    setIsOverrideMode(false);
+  };
+
+  // 섹터 바꿀 때 세부설정창 열림 설정 초기화
+  useEffect(() => {
+    setIsOverrideMode(false);
+  }, [activeSector]);
+ 
+
+  useEffect(() => {
+    if (selectedDevice) {
+      setTempValue(selectedDevice.value);
+    }
+  }, [selectedId]);
 
   return (
     <>
@@ -332,11 +419,11 @@ const DeviceControlPage = () => {
             <DeviceGrid>
               {currentDevices.map((device) => (
                 <DeviceCard
-                  key={device.id}
+                  key={`${activeSector}-${device.id}`}
                   onClick={() => {
                     setSelectedId(device.id);
-
                     setTempValue(device.value);
+                    setIsOverrideMode(false);
                   }}
                   className={selectedId === device.id ? 'selected' : ''}
                 >
@@ -387,7 +474,7 @@ const DeviceControlPage = () => {
           </ControlGroupCard>
 
           <HistoryCard>
-            <CardTitle>씨팜 영농일지 (운영 기록)</CardTitle>
+            <CardTitle>디바이스 작동일지</CardTitle>
 
             <HistoryList>
               {logs.map((log, idx) => (
@@ -416,7 +503,7 @@ const DeviceControlPage = () => {
               <EmptyState>
                 제어할 환경 지표를 좌측에서 선택해 주세요.
               </EmptyState>
-            ) : selectedDevice.isAuto ? (
+            ) : selectedDevice.isAuto && !isOverrideMode ? (
               <AutoLockedBox>
                 <div className="status-ring">
                   <span className="ai-icon">🤖</span>
@@ -438,15 +525,7 @@ const DeviceControlPage = () => {
 
                 <button
                   className="switch-btn"
-                  onClick={(e) => {
-                    setSectorData({
-                      ...sectorData,
-
-                      [activeSector]: sectorData[activeSector].map((d) =>
-                        d.id === selectedId ? { ...d, isAuto: false } : d,
-                      ),
-                    });
-                  }}
+                  onClick={handleSwitchToManual}
                 >
                   목표값 강제 개입 (수동 모드)
                 </button>
@@ -519,13 +598,8 @@ const DeviceControlPage = () => {
                   <button
                     className="btn-cancel"
                     onClick={() => {
-                      setSectorData({
-                        ...sectorData,
-
-                        [activeSector]: sectorData[activeSector].map((d) =>
-                          d.id === selectedId ? { ...d, isAuto: true } : d,
-                        ),
-                      });
+                      handleSwitchToAuto();
+                      setIsOverrideMode(false);
                     }}
                   >
                     취소 (자동 복귀)
