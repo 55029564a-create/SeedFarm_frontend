@@ -373,21 +373,21 @@ const DashboardPage = () => {
     aqi: '보통',
     icon: '🌤️',
   };
-  
+
   const loadDashboard = async () => {
     try {
       const res = await fetch(`${API_BASE}/dashboard/${batchId}`);
       const text = await res.text();
       console.log('dashboard raw', text);
 
-      const json =JSON.parse(text);
+      const json = JSON.parse(text);
       setServerDashboard(json);
     } catch (err) {
       console.error('dashboard 조회 실패', err);
     }
   };
 
-   useEffect(() => {
+  useEffect(() => {
     loadDashboard();
   }, [batchId]);
 
@@ -488,160 +488,160 @@ const DashboardPage = () => {
   const aiReports = serverDashboard?.ai_reports || [];
 
   const mainSensorCards = sensors
-  ? [
-      {
-        label: '내부 온도',
-        value: sensors.temperature?.value ?? '-',
-        unit: sensors.temperature?.unit ?? '°C',
-        trend:
-          sensors.temperature?.delta == null
-            ? '-'
-            : `${sensors.temperature.delta > 0 ? '+' : ''}${sensors.temperature.delta}`,
-        status:
-          sensors.temperature?.delta > 0
-            ? 'up'
-            : sensors.temperature?.delta < 0
-              ? 'down'
-              : 'stable',
-        range: sensorMetaMap['내부 온도']?.range || '',
-        updatedAt: sensors.recorded_at || '방금 전',
-      },
-      {
-        label: '내부 습도',
-        value: sensors.humidity?.value ?? '-',
-        unit: sensors.humidity?.unit ?? '%',
-        trend:
-          sensors.humidity?.delta == null
-            ? '-'
-            : `${sensors.humidity.delta > 0 ? '+' : ''}${sensors.humidity.delta}`,
-        status:
-          sensors.humidity?.delta > 0
-            ? 'up'
-            : sensors.humidity?.delta < 0
-              ? 'down'
-              : 'stable',
-        range: sensorMetaMap['내부 습도']?.range || '',
-        updatedAt: sensors.recorded_at || '방금 전',
-      },
-      {
-        label: 'CO2 농도',
-        value: sensors.co2?.value ?? '-',
-        unit: sensors.co2?.unit ?? 'ppm',
-        trend:
-          sensors.co2?.delta == null
-            ? '-'
-            : `${sensors.co2.delta > 0 ? '+' : ''}${sensors.co2.delta}`,
-        status:
-          sensors.co2?.delta > 0
-            ? 'up'
-            : sensors.co2?.delta < 0
-              ? 'down'
-              : 'stable',
-        range: sensorMetaMap['CO2 농도']?.range || '',
-        updatedAt: sensors.recorded_at || '방금 전',
-      },
-      {
-        label: '광합성 광량',
-        value: sensors.radiation?.value ?? '-',
-        unit: sensors.radiation?.unit ?? 'W/m²',
-        trend:
-          sensors.radiation?.delta == null
-            ? '-'
-            : `${sensors.radiation.delta > 0 ? '+' : ''}${sensors.radiation.delta}`,
-        status:
-          sensors.radiation?.delta > 0
-            ? 'up'
-            : sensors.radiation?.delta < 0
-              ? 'down'
-              : 'stable',
-        range: sensorMetaMap['광합성 광량']?.range || '',
-        updatedAt: sensors.recorded_at || '방금 전',
-      },
-      {
-        label: '토양 양액 농도(EC)',
-        value: sensors.soil_ec?.value ?? '-',
-        unit: sensors.soil_ec?.unit ?? 'dS/m',
-        trend:
-          sensors.soil_ec?.delta == null
-            ? '-'
-            : `${sensors.soil_ec.delta > 0 ? '+' : ''}${sensors.soil_ec.delta}`,
-        status:
-          sensors.soil_ec?.delta > 0
-            ? 'up'
-            : sensors.soil_ec?.delta < 0
-              ? 'down'
-              : 'stable',
-        range: sensorMetaMap['토양 양액 농도(EC)']?.range || '',
-        updatedAt: sensors.recorded_at || '방금 전',
-      },
-      {
-        label: '토양 산도(pH)',
-        value: sensors.soil_ph?.value ?? '-',
-        unit: sensors.soil_ph?.unit ?? 'pH',
-        trend:
-          sensors.soil_ph?.delta == null
-            ? '-'
-            : `${sensors.soil_ph.delta > 0 ? '+' : ''}${sensors.soil_ph.delta}`,
-        status:
-          sensors.soil_ph?.delta > 0
-            ? 'up'
-            : sensors.soil_ph?.delta < 0
-              ? 'down'
-              : 'stable',
-        range: sensorMetaMap['토양 산도(pH)']?.range || '',
-        updatedAt: sensors.recorded_at || '방금 전',
-      },
-    ]
-  : liveSensors.map((sensor) => ({
-      ...sensor,
-      range: sensorMetaMap[sensor.label]?.range || '',
-      updatedAt: sensorMetaMap[sensor.label]?.updatedAt || '방금 전',
-    }));
+    ? [
+        {
+          label: '내부 온도',
+          value: sensors.temperature?.value ?? '-',
+          unit: sensors.temperature?.unit ?? '°C',
+          trend:
+            sensors.temperature?.delta == null
+              ? '-'
+              : `${sensors.temperature.delta > 0 ? '+' : ''}${sensors.temperature.delta}`,
+          status:
+            sensors.temperature?.delta > 0
+              ? 'up'
+              : sensors.temperature?.delta < 0
+                ? 'down'
+                : 'stable',
+          range: sensorMetaMap['내부 온도']?.range || '',
+          updatedAt: sensors.recorded_at || '방금 전',
+        },
+        {
+          label: '내부 습도',
+          value: sensors.humidity?.value ?? '-',
+          unit: sensors.humidity?.unit ?? '%',
+          trend:
+            sensors.humidity?.delta == null
+              ? '-'
+              : `${sensors.humidity.delta > 0 ? '+' : ''}${sensors.humidity.delta}`,
+          status:
+            sensors.humidity?.delta > 0
+              ? 'up'
+              : sensors.humidity?.delta < 0
+                ? 'down'
+                : 'stable',
+          range: sensorMetaMap['내부 습도']?.range || '',
+          updatedAt: sensors.recorded_at || '방금 전',
+        },
+        {
+          label: 'CO2 농도',
+          value: sensors.co2?.value ?? '-',
+          unit: sensors.co2?.unit ?? 'ppm',
+          trend:
+            sensors.co2?.delta == null
+              ? '-'
+              : `${sensors.co2.delta > 0 ? '+' : ''}${sensors.co2.delta}`,
+          status:
+            sensors.co2?.delta > 0
+              ? 'up'
+              : sensors.co2?.delta < 0
+                ? 'down'
+                : 'stable',
+          range: sensorMetaMap['CO2 농도']?.range || '',
+          updatedAt: sensors.recorded_at || '방금 전',
+        },
+        {
+          label: '광합성 광량',
+          value: sensors.radiation?.value ?? '-',
+          unit: sensors.radiation?.unit ?? 'W/m²',
+          trend:
+            sensors.radiation?.delta == null
+              ? '-'
+              : `${sensors.radiation.delta > 0 ? '+' : ''}${sensors.radiation.delta}`,
+          status:
+            sensors.radiation?.delta > 0
+              ? 'up'
+              : sensors.radiation?.delta < 0
+                ? 'down'
+                : 'stable',
+          range: sensorMetaMap['광합성 광량']?.range || '',
+          updatedAt: sensors.recorded_at || '방금 전',
+        },
+        {
+          label: '토양 양액 농도(EC)',
+          value: sensors.soil_ec?.value ?? '-',
+          unit: sensors.soil_ec?.unit ?? 'dS/m',
+          trend:
+            sensors.soil_ec?.delta == null
+              ? '-'
+              : `${sensors.soil_ec.delta > 0 ? '+' : ''}${sensors.soil_ec.delta}`,
+          status:
+            sensors.soil_ec?.delta > 0
+              ? 'up'
+              : sensors.soil_ec?.delta < 0
+                ? 'down'
+                : 'stable',
+          range: sensorMetaMap['토양 양액 농도(EC)']?.range || '',
+          updatedAt: sensors.recorded_at || '방금 전',
+        },
+        {
+          label: '토양 산도(pH)',
+          value: sensors.soil_ph?.value ?? '-',
+          unit: sensors.soil_ph?.unit ?? 'pH',
+          trend:
+            sensors.soil_ph?.delta == null
+              ? '-'
+              : `${sensors.soil_ph.delta > 0 ? '+' : ''}${sensors.soil_ph.delta}`,
+          status:
+            sensors.soil_ph?.delta > 0
+              ? 'up'
+              : sensors.soil_ph?.delta < 0
+                ? 'down'
+                : 'stable',
+          range: sensorMetaMap['토양 산도(pH)']?.range || '',
+          updatedAt: sensors.recorded_at || '방금 전',
+        },
+      ]
+    : liveSensors.map((sensor) => ({
+        ...sensor,
+        range: sensorMetaMap[sensor.label]?.range || '',
+        updatedAt: sensorMetaMap[sensor.label]?.updatedAt || '방금 전',
+      }));
 
-    const growthData = cropStatus
-  ? {
-      height: {
-        value: cropStatus.plant_height ?? 0,
-        target: currentData.growth.height.target,
-        unit: 'cm',
-      },
-      leafCount: {
-        value: cropStatus.leaf_count ?? 0,
-        target: currentData.growth.leafCount.target,
-        unit: '개',
-      },
-      leafLength: {
-        value: cropStatus.leaf_length ?? 0,
-        target: currentData.growth.leafLength.target,
-        unit: 'cm',
-      },
-      leafWidth: {
-        value: cropStatus.leaf_width ?? 0,
-        target: currentData.growth.leafWidth.target,
-        unit: 'cm',
-      },
-    }
-  : currentData.growth;
+  const growthData = cropStatus
+    ? {
+        height: {
+          value: cropStatus.plant_height ?? 0,
+          target: currentData.growth.height.target,
+          unit: 'cm',
+        },
+        leafCount: {
+          value: cropStatus.leaf_count ?? 0,
+          target: currentData.growth.leafCount.target,
+          unit: '개',
+        },
+        leafLength: {
+          value: cropStatus.leaf_length ?? 0,
+          target: currentData.growth.leafLength.target,
+          unit: 'cm',
+        },
+        leafWidth: {
+          value: cropStatus.leaf_width ?? 0,
+          target: currentData.growth.leafWidth.target,
+          unit: 'cm',
+        },
+      }
+    : currentData.growth;
 
   const dashboardLogs = deviceLogs.length
-  ? deviceLogs.map((log) => ({
-      id: log.id,
-      time: log.time || '-',
-      device: log.device,
-      action: log.mode,
-      desc: log.detail || '',
-      status: log.status === 'issued' ? 'active' : 'done',
-    }))
-  : currentData.logs;
+    ? deviceLogs.map((log) => ({
+        id: log.id,
+        time: log.time || '-',
+        device: log.device,
+        action: log.mode,
+        desc: log.detail || '',
+        status: log.status === 'issued' ? 'active' : 'done',
+      }))
+    : currentData.logs;
 
   const dashboardAiLogs = aiReports.length
-  ? aiReports.map((log) => ({
-      time: log.time || '-',
-      status: log.level === '경고' ? 'warning' : 'action',
-      title: log.title,
-      desc: `confidence=${log.confidence ?? '-'} / severity=${log.severity ?? '-'}`,
-    }))
-  : aiLogs;
+    ? aiReports.map((log) => ({
+        time: log.time || '-',
+        status: log.level === '경고' ? 'warning' : 'action',
+        title: log.title,
+        desc: `confidence=${log.confidence ?? '-'} / severity=${log.severity ?? '-'}`,
+      }))
+    : aiLogs;
 
   const renderGrowthItem = (label, data) => {
     const diff = (data.value - data.target).toFixed(1);
@@ -710,10 +710,14 @@ const DashboardPage = () => {
             </div>
             <div className="score-row">
               <div className="score-wrap">
-                <span className="score">{overview?.score ?? currentData.percent}</span>
+                <span className="score">
+                  {overview?.score ?? currentData.percent}
+                </span>
                 <span className="percent">%</span>
               </div>
-              <div className="phase-badge">{overview?.phase ?? currentData.phase}</div>
+              <div className="phase-badge">
+                {overview?.phase ?? currentData.phase}
+              </div>
             </div>
             <div className="progress-track">
               <div
@@ -721,7 +725,9 @@ const DashboardPage = () => {
                 style={{ width: `${overview?.score ?? currentData.percent}%` }}
               />
             </div>
-            <div className="status">{overview?.summary ?? currentData.status}</div>
+            <div className="status">
+              {overview?.summary ?? currentData.status}
+            </div>
           </ScoreMiniCard>
         </TopLeftGroup>
 
@@ -826,24 +832,56 @@ const DashboardPage = () => {
           </LogGroupCard>
 
           <AILogGroupCard>
-            <div className="log-header">
-              <CardTitle>AI Insights</CardTitle>
-              <span className="sub-badge ai">AI Active</span>
-            </div>
-            <AILogList>
-              {dashboardAiLogs.map((log, index) => (
-                <AILogItem key={index} className={log.status}>
-                  <div className="top-row">
-                    <span className="badge">
-                      {log.status === 'action' ? '추천' : '경고'}
-                    </span>
-                    <span className="time">{log.time}</span>
+            <div className="chart-section">
+              <div className="chart-mini-title">기간별 생장 속도 비교</div>
+
+              <GrowthBarsContainer>
+                <div className="bar-row">
+                  <span className="time-label">어제 대비</span>
+                  <div className="bar-track">
+                    <div
+                      className="bar-fill day"
+                      style={{
+                        width: `${Math.min(((currentData?.growthDelta?.day ?? 2.4) / 5) * 100, 100)}%`,
+                      }}
+                    />
                   </div>
-                  <div className="title">{log.title}</div>
-                  <div className="desc">{log.desc}</div>
-                </AILogItem>
-              ))}
-            </AILogList>
+                  <span className="value-label">
+                    +{currentData?.growthDelta?.day ?? 2.4}cm
+                  </span>
+                </div>
+
+                <div className="bar-row">
+                  <span className="time-label">1주 전 대비</span>
+                  <div className="bar-track">
+                    <div
+                      className="bar-fill week"
+                      style={{
+                        width: `${Math.min(((currentData?.growthDelta?.week ?? 8.7) / 15) * 100, 100)}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="value-label">
+                    +{currentData?.growthDelta?.week ?? 8.7}cm
+                  </span>
+                </div>
+
+                <div className="bar-row">
+                  <span className="time-label">1개월 전 대비</span>
+                  <div className="bar-track">
+                    <div
+                      className="bar-fill month"
+                      style={{
+                        width: `${Math.min(((currentData?.growthDelta?.month ?? 21.5) / 30) * 100, 100)}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="value-label">
+                    +{currentData?.growthDelta?.month ?? 21.5}cm
+                  </span>
+                </div>
+              </GrowthBarsContainer>
+            </div>
           </AILogGroupCard>
         </CenterColumn>
 
@@ -902,6 +940,8 @@ const BaseCard = styled.div`
 
 const PageGrid = styled.div`
   --grid-gap: 1.1em;
+  --bottom-height: 548px;
+
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -939,10 +979,11 @@ const BottomRow = styled.div`
   grid-template-columns: 1.5fr 1fr 0.85fr;
   gap: var(--grid-gap);
   width: 100%;
-  height: 610px;
-  min-height: 610px;
-  max-height: 610px;
+  height: var(--bottom-height);
+  min-height: var(--bottom-height);
+  max-height: var(--bottom-height);
   overflow: hidden;
+
   @media (max-width: 1200px) {
     grid-template-columns: 1fr;
     height: auto;
@@ -950,15 +991,14 @@ const BottomRow = styled.div`
     max-height: unset;
   }
 `;
-
 const CenterColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: var(--grid-gap);
   min-width: 0;
-  height: 610px;
-  min-height: 610px;
-  max-height: 610px;
+  height: var(--bottom-height);
+  min-height: var(--bottom-height);
+  max-height: var(--bottom-height);
   overflow: hidden;
   @media (max-width: 1200px) {
     height: auto;
@@ -971,9 +1011,9 @@ const RightColumn = styled.div`
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: 610px;
-  min-height: 610px;
-  max-height: 610px;
+  height: var(--bottom-height);
+  min-height: var(--bottom-height);
+  max-height: var(--bottom-height);
   overflow: hidden;
   @media (max-width: 1200px) {
     height: auto;
@@ -1163,9 +1203,9 @@ const ScoreMiniCard = styled(BaseCard)`
 `;
 
 const CameraCard = styled(BaseCard)`
-  height: 610px;
-  min-height: 610px;
-  max-height: 610px;
+  height: var(--bottom-height);
+  min-height: var(--bottom-height);
+  max-height: var(--bottom-height);
   padding: 1em;
   overflow: hidden;
 
@@ -1345,10 +1385,10 @@ const CameraCard = styled(BaseCard)`
 `;
 
 const LogGroupCard = styled(BaseCard)`
-  flex: 0 0 300px;
-  height: 300px;
-  min-height: 300px;
-  max-height: 300px;
+  flex: 0 0 380px;
+  height: 430px;
+  min-height: 380px;
+  max-height: 380px;
   overflow: hidden;
 
   .log-header {
@@ -1372,10 +1412,10 @@ const LogGroupCard = styled(BaseCard)`
 
 const AILogGroupCard = styled(BaseCard)`
   flex: 1;
-  height: calc(610px - 300px - var(--grid-gap));
-  min-height: 240px;
-  max-height: calc(610px - 300px - var(--grid-gap));
-  padding: 1em;
+  height: calc(var(--bottom-height) - 340px - var(--grid-gap));
+  min-height: 0;
+  max-height: calc(var(--bottom-height) - 340px - var(--grid-gap));
+  padding: 0.95em 1em;
   overflow: hidden;
 
   .log-header {
@@ -1406,13 +1446,27 @@ const AILogGroupCard = styled(BaseCard)`
     min-height: 240px;
     max-height: none;
   }
+
+  .chart-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .chart-mini-title {
+    font-size: 0.95em;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 14px;
+  }
 `;
 
 const SensorsGroupCard = styled(BaseCard)`
   flex: 1;
-  height: 610px;
-  min-height: 610px;
-  max-height: 610px;
+  height: var(--bottom-height);
+  min-height: var(--bottom-height);
+  max-height: var(--bottom-height);
   overflow: hidden;
 
   @media (max-width: 1200px) {
@@ -1802,5 +1856,56 @@ const AILogItem = styled.div`
     color: #475569;
     line-height: 1.35;
     font-weight: 600;
+  }
+`;
+
+const GrowthBarsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 4px;
+
+  .bar-row {
+    display: grid;
+    grid-template-columns: 72px 1fr 58px;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .time-label {
+    font-size: 0.74em;
+    font-weight: 700;
+    color: #64748b;
+    text-align: right;
+  }
+
+  .bar-track {
+    height: 18px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 999px;
+
+    &.day {
+      background: #38bdf8;
+    }
+
+    &.week {
+      background: #3b82f6;
+    }
+
+    &.month {
+      background: #6366f1;
+    }
+  }
+
+  .value-label {
+    font-size: 0.8em;
+    font-weight: 800;
+    color: #0f172a;
   }
 `;
