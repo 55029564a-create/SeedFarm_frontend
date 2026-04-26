@@ -4,6 +4,43 @@ import { useOutletContext } from 'react-router-dom';
 import { BaseCard, CardTitle, Flex } from './Styles/AdminShared';
 import client from '../../api/client';
 
+const EVENT_TEXT_MAP = {
+  disease: '병해 분석',
+  quality: '품질 분석',
+  flowering: '개화 감지',
+  harvest: '수확 예측',
+  normal: '정상',
+  warning: '주의',
+  danger: '위험',
+  fail: '실패',
+  triggered: '자동 개입',
+  applied: '적용 완료',
+};
+
+const VALUE_MAP = {
+  // 상태
+  Healthy: '정상',
+  Defective: '불량',
+
+  // 병해
+  'Leaf Miner': '잎굴파리 피해',
+  'Late Blight': '역병',
+  'Early Blight': '겹무늬병',
+  'Leaf Mold': '잎곰팡이병',
+  'Spider Mites': '응애 피해',
+  'Bacterial Spot': '세균성 반점병',
+  'Tomato Leaf Curl Virus': '토마토 잎말림 바이러스',
+
+  // 기타 fallback
+  Unknown: '미확인',
+};
+const toKoreanType = (type) => {
+  return EVENT_TEXT_MAP[String(type || '').toLowerCase()] || type || '-';
+};
+
+const toKoreanValue = (value) => {
+  return VALUE_MAP[String(value || '')] || value || '-';
+};
 const DataAnalysisPage = () => {
   const { selectedBranch } = useOutletContext();
   const [selectedBatch, setSelectedBatch] = useState('');
@@ -261,6 +298,57 @@ const DataAnalysisPage = () => {
     minHeight,
   );
 
+  const translateEventText = (text) => {
+    if (!text) return '-';
+
+    return String(text).replace(
+      /disease|quality|flowering|harvest|normal|warning|danger|fail|triggered|applied/gi,
+      (match) => EVENT_TEXT_MAP[match.toLowerCase()] || match,
+    );
+  };
+  const getEventIcon = (type) => {
+    const key = String(type || '').toLowerCase();
+
+    if (key === 'disease') return '🦠';
+    if (key === 'quality') return '🍅';
+    if (key === 'flowering') return '🌼';
+    if (key === 'harvest') return '🧺';
+
+    return '🌱';
+  };
+
+  const getEventLevel = (ev) => {
+    const severity = String(ev.severity || ev.level || '').toLowerCase();
+    const type = String(ev.result_type || '').toLowerCase();
+
+    if (severity.includes('danger') || severity.includes('위험'))
+      return 'danger';
+    if (severity.includes('warning') || severity.includes('주의'))
+      return 'warning';
+    if (type === 'disease') return 'danger';
+    if (type === 'quality' && ev.result_value === 'Defective') return 'warning';
+
+    return 'normal';
+  };
+
+  const getEventTitle = (ev) => {
+    const typeText = toKoreanType(ev.result_type);
+    const valueText = toKoreanValue(ev.result_value);
+
+    if (ev.result_type || ev.result_value) {
+      return `${typeText}: ${valueText}`;
+    }
+
+    return translateEventText(ev.title);
+  };
+
+  const getEventDesc = (ev) => {
+    if (ev.desc) return translateEventText(ev.desc);
+    if (ev.title) return translateEventText(ev.title);
+
+    return `신뢰도 ${ev.confidence ?? '-'} / 심각도 ${toKoreanType(ev.severity)}`;
+  };
+
   const getHoverPoint = (chartType, index) => {
     const row = activeChartData[index];
     if (!row) return null;
@@ -349,31 +437,56 @@ const DataAnalysisPage = () => {
         </FilterCard>
 
         <TimelineCard>
-          <Flex
-            $justify="space-between"
-            $align="center"
-            style={{ marginBottom: '1.2em', flexShrink: 0 }}
-          >
-            <CardTitle style={{ margin: 0 }}>
-              씨드팜 일지 (Seed Farm Log)
-            </CardTitle>
-          </Flex>
+          <div className="timeline-head">
+            <div>
+              <CardTitle style={{ margin: 0 }}>
+                씨드팜 일지 (Seed Farm Log)
+              </CardTitle>
+              <p>AI 분석 결과와 생육 이벤트를 최근 순으로 보여줍니다.</p>
+            </div>
+
+            <span className="count-badge">
+              최대 {(currentData?.issues || []).slice(0, 20).length}건
+            </span>
+          </div>
 
           <TimelineWrapper>
-            {(currentData?.issues || []).map((ev) => (
-              <TimelineItem key={ev.id}>
+            {(currentData?.issues || []).slice(0, 20).length === 0 && (
+              <EmptyTimeline>
+                <div className="empty-icon">🌱</div>
+                <strong>아직 수집된 일지가 없습니다.</strong>
+                <span>AI 분석 결과가 발생하면 이곳에 표시됩니다.</span>
+              </EmptyTimeline>
+            )}
+
+            {(currentData?.issues || []).slice(0, 20).map((ev) => (
+              <TimelineItem key={ev.id} $level={getEventLevel(ev)}>
                 <div className="time-col">
-                  {ev.time?.split(' ')[0]}
-                  <br />
-                  {ev.time?.split(' ')[1]}
+                  <span>{ev.time?.split(' ')[0] || '-'}</span>
+                  <strong>{ev.time?.split(' ')[1] || ''}</strong>
                 </div>
+
                 <div className="line-col">
-                  <div className="icon-circle">{ev.icon}</div>
+                  <div className="icon-circle">
+                    {ev.icon || getEventIcon(ev.result_type)}
+                  </div>
                   <div className="line-tail"></div>
                 </div>
+
                 <div className="content-col">
-                  <div className="c-title">{ev.title}</div>
-                  <div className="c-desc">{ev.desc}</div>
+                  <div className="content-top">
+                    <div className="c-title">{getEventTitle(ev)}</div>
+                    <span className="type-badge">
+                      {toKoreanType(ev.result_type)}
+                    </span>
+                  </div>
+
+                  <div className="c-desc">{getEventDesc(ev)}</div>
+
+                  <div className="meta-row">
+                    <span>신뢰도 {ev.confidence ?? '-'}</span>
+                    <span>심각도 {toKoreanType(ev.severity)}</span>
+                  </div>
                 </div>
               </TimelineItem>
             ))}
@@ -848,69 +961,240 @@ const TimelineCard = styled(BaseCard)`
   display: flex;
   flex-direction: column;
   min-height: 0;
+  padding: 1.4em;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(16, 185, 129, 0.08),
+      transparent 34%
+    ),
+    #ffffff;
+
+  .timeline-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 1.1em;
+    flex-shrink: 0;
+
+    p {
+      margin: 6px 0 0;
+      font-size: 0.75em;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+  }
+
+  .count-badge {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #ecfdf5;
+    color: #059669;
+    font-size: 0.72em;
+    font-weight: 900;
+  }
 `;
 const TimelineWrapper = styled.div`
   flex: 1;
   overflow-y: auto;
-  scrollbar-width: none;
+  padding-right: 6px;
+  min-height: 0;
+
   &::-webkit-scrollbar {
-    display: none;
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #d1fae5;
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
   }
 `;
 const TimelineItem = styled.div`
   display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 16px;
+
   .time-col {
-    width: 60px;
-    font-size: 0.7em;
-    font-weight: 800;
-    color: #94a3b8;
+    width: 66px;
     text-align: right;
+    padding-top: 4px;
+    flex-shrink: 0;
+
+    span {
+      display: block;
+      font-size: 0.68em;
+      font-weight: 800;
+      color: #94a3b8;
+      line-height: 1.2;
+    }
+
+    strong {
+      display: block;
+      margin-top: 3px;
+      font-size: 0.72em;
+      font-weight: 900;
+      color: #475569;
+      line-height: 1.2;
+    }
   }
+
   .line-col {
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
+    flex-shrink: 0;
+
     .icon-circle {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: #fff;
-      border: 2px solid #e2e8f0;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: ${({ $level }) =>
+        $level === 'danger'
+          ? '#fef2f2'
+          : $level === 'warning'
+            ? '#fffbeb'
+            : '#ecfdf5'};
+      border: 2px solid
+        ${({ $level }) =>
+          $level === 'danger'
+            ? '#fecaca'
+            : $level === 'warning'
+              ? '#fde68a'
+              : '#bbf7d0'};
       display: flex;
       justify-content: center;
       align-items: center;
       z-index: 2;
+      font-size: 1em;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
     }
+
     .line-tail {
       position: absolute;
-      top: 30px;
-      bottom: -20px;
+      top: 34px;
+      bottom: -18px;
       width: 2px;
-      background: #f1f5f9;
+      background: linear-gradient(180deg, #d1fae5, transparent);
       z-index: 1;
     }
   }
+
   .content-col {
     flex: 1;
-    padding: 12px;
-    background: #f8fafc;
-    border-radius: 10px;
+    min-width: 0;
+    padding: 13px 14px;
+    background: #ffffff;
+    border-radius: 16px;
     border: 1px solid #e2e8f0;
-    .c-title {
-      font-size: 0.85em;
-      font-weight: 800;
-      color: #0f172a;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
     }
-    .c-desc {
-      font-size: 0.75em;
+  }
+
+  .content-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .c-title {
+    font-size: 0.88em;
+    font-weight: 900;
+    color: #0f172a;
+    line-height: 1.3;
+    word-break: keep-all;
+  }
+
+  .type-badge {
+    flex-shrink: 0;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: ${({ $level }) =>
+      $level === 'danger'
+        ? '#fef2f2'
+        : $level === 'warning'
+          ? '#fffbeb'
+          : '#ecfdf5'};
+    color: ${({ $level }) =>
+      $level === 'danger'
+        ? '#dc2626'
+        : $level === 'warning'
+          ? '#d97706'
+          : '#059669'};
+    font-size: 0.64em;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+
+  .c-desc {
+    font-size: 0.76em;
+    color: #64748b;
+    line-height: 1.45;
+    font-weight: 600;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 9px;
+
+    span {
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: #f8fafc;
       color: #64748b;
-      margin-top: 4px;
+      font-size: 0.68em;
+      font-weight: 800;
     }
   }
 `;
+
+const EmptyTimeline = styled.div`
+  height: 100%;
+  min-height: 180px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 18px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #64748b;
+  text-align: center;
+
+  .empty-icon {
+    font-size: 2rem;
+    margin-bottom: 4px;
+  }
+
+  strong {
+    font-size: 0.95em;
+    color: #0f172a;
+  }
+
+  span {
+    font-size: 0.78em;
+    font-weight: 600;
+  }
+`;
+
 const KpiRow = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);

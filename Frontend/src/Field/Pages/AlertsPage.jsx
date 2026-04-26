@@ -1,12 +1,57 @@
-import { useEffect, useMemo, useState } from "react";
-import styled from "styled-components";
-import FieldPageShell from "../Components/FieldPageShell";
-import { getDashboard } from "../api/fieldApi";
-import { FIELD_BATCH_ID } from "../fieldConfig";
+import { useEffect, useMemo, useState } from 'react';
+import styled from 'styled-components';
+import FieldPageShell from '../Components/FieldPageShell';
+import { getDashboard } from '../api/fieldApi';
+import { FIELD_BATCH_ID } from '../fieldConfig';
+
+const TYPE_MAP = {
+  disease: '병해 분석',
+  flowering: '개화',
+  harvest: '수확 예측',
+  quality: '품질 분석',
+
+  normal: '정상',
+  warning: '주의',
+  danger: '위험',
+  fail: '실패',
+  triggered: '자동 개입',
+  applied: '적용 완료',
+
+  auto: '자동',
+  manual: '수동',
+  issued: '명령 전송',
+  done: '완료',
+  success: '성공',
+};
+
+const VALUE_MAP = {
+  Healthy: '정상',
+  Defective: '불량',
+  'Leaf Miner': '잎굴파리 피해',
+  'Late Blight': '역병',
+  'Early Blight': '겹무늬병',
+  'Leaf Mold': '잎곰팡이병',
+  'Spider Mites': '응애 피해',
+  'Bacterial Spot': '세균성 반점병',
+  'Tomato Leaf Curl Virus': '토마토 잎말림 바이러스',
+};
+
+const toKoreanType = (type) => {
+  return TYPE_MAP[String(type || '').toLowerCase()] || type || '-';
+};
+
+const toKoreanValue = (value) => {
+  return VALUE_MAP[String(value || '')] || value || '-';
+};
+
+const toKoreanStatus = (value) => {
+  return TYPE_MAP[String(value || '').toLowerCase()] || value || '-';
+};
 
 export default function AlertsPage() {
   const [events, setEvents] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [showAllEvents, setShowAllEvents] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -15,26 +60,41 @@ export default function AlertsPage() {
         setEvents(data?.ai_reports ?? []);
         setLogs(data?.device_logs ?? []);
       } catch (error) {
-        console.error("Alert logs load failed:", error);
+        console.error('Alert logs load failed:', error);
       }
     };
+
     load();
   }, []);
 
   const summary = useMemo(() => {
     const eventTotal = events.filter((event) =>
-      ["disease", "flowering", "harvest"].includes(
-        (event.result_type || "").toLowerCase()
-      )
+      ['disease', 'flowering', 'harvest', 'quality'].includes(
+        String(event.result_type || '').toLowerCase(),
+      ),
     ).length;
+
+    const visibleEvents = showAllEvents
+      ? events.slice(0, 20)
+      : events.slice(0, 4);
+
     const critical = logs.filter((log) =>
-      ["fail", "triggered"].includes((log.status || "").toLowerCase())
+      ['fail', 'triggered'].includes(String(log.status || '').toLowerCase()),
     ).length;
+
     const normal = logs.filter(
-      (log) => !["fail", "triggered"].includes((log.status || "").toLowerCase())
+      (log) =>
+        !['fail', 'triggered'].includes(String(log.status || '').toLowerCase()),
     ).length;
-    return { critical, normal, total: logs.length, eventTotal };
-  }, [events, logs]);
+
+    return {
+      critical,
+      normal,
+      total: logs.length,
+      eventTotal,
+      visibleEvents,
+    };
+  }, [events, logs, showAllEvents]);
 
   return (
     <FieldPageShell title="Alerts" rightText={`${summary.total} Logs`}>
@@ -43,10 +103,12 @@ export default function AlertsPage() {
           <span>Critical</span>
           <strong>{summary.critical}</strong>
         </SummaryCard>
+
         <SummaryCard>
           <span>Normal</span>
           <strong>{summary.normal}</strong>
         </SummaryCard>
+
         <SummaryCard>
           <span>Event</span>
           <strong>{summary.eventTotal}</strong>
@@ -56,7 +118,9 @@ export default function AlertsPage() {
       <PrimaryAlert>
         <div className="badge">TELEGRAM</div>
         <h2>경고는 텔레그램으로 전송됩니다.</h2>
-        <p>이 페이지는 텔레그램으로 발송된 경고/동작의 최근 이력을 보여줍니다.</p>
+        <p>
+          이 페이지는 텔레그램으로 발송된 경고/동작의 최근 이력을 보여줍니다.
+        </p>
       </PrimaryAlert>
 
       <SectionTitle>이벤트 이력 (병/개화/수확시기)</SectionTitle>
@@ -65,31 +129,45 @@ export default function AlertsPage() {
         {events.length === 0 && (
           <EmptyCard>
             <div className="title">아직 수집된 이벤트가 없습니다.</div>
-            <div className="desc">병/개화/수확시기 이벤트가 발생하면 여기에 표시됩니다.</div>
+            <div className="desc">
+              병/개화/수확시기 이벤트가 발생하면 여기에 표시됩니다.
+            </div>
           </EmptyCard>
         )}
-        {events.map((item) => (
+
+        {summary.visibleEvents.map((item) => (
           <AlertCard
             key={`event-${item.id}`}
-            $level={item.level === "경고" ? "danger" : "normal"}
+            $level={item.level === '경고' ? 'danger' : 'normal'}
           >
             <div className="top">
               <div className="left">
                 <div className="title">
-                  {item.result_type || "event"}: {item.result_value || "-"}
+                  {toKoreanType(item.result_type)}:{' '}
+                  {toKoreanValue(item.result_value)}
                 </div>
-                <div className="desc">{item.title || "이벤트 메시지 없음"}</div>
+                <div className="desc">{item.title || '이벤트 메시지 없음'}</div>
               </div>
-              <div className="time">{item.time || "-"}</div>
+
+              <div className="time">{item.time || '-'}</div>
             </div>
 
             <div className="bottom">
               <div className="action">
-                confidence: {item.confidence ?? "-"} / severity: {item.severity ?? "-"}
+                신뢰도: {item.confidence ?? '-'} / 심각도:{' '}
+                {toKoreanStatus(item.severity)}
               </div>
             </div>
           </AlertCard>
         ))}
+
+        {events.length > 4 && (
+          <MoreButton onClick={() => setShowAllEvents((prev) => !prev)}>
+            {showAllEvents
+              ? '접기'
+              : `더 보기 (${Math.min(events.length, 20) - 4}개)`}
+          </MoreButton>
+        )}
       </AlertList>
 
       <SectionTitle>디바이스 가동내역</SectionTitle>
@@ -98,25 +176,36 @@ export default function AlertsPage() {
         {logs.length === 0 && (
           <EmptyCard>
             <div className="title">아직 수집된 이력이 없습니다.</div>
-            <div className="desc">디바이스 가동내역이 생기면 이 영역에 누적됩니다.</div>
+            <div className="desc">
+              디바이스 가동내역이 생기면 이 영역에 누적됩니다.
+            </div>
           </EmptyCard>
         )}
+
         {logs.map((item) => (
           <AlertCard
-            key={item.id}
-            $level={["fail", "triggered"].includes((item.status || "").toLowerCase()) ? "danger" : "normal"}
+            key={`log-${item.id}`}
+            $level={
+              ['fail', 'triggered'].includes(
+                String(item.status || '').toLowerCase(),
+              )
+                ? 'danger'
+                : 'normal'
+            }
           >
             <div className="top">
               <div className="left">
-                <div className="title">{item.device || "시스템"}</div>
-                <div className="desc">{item.detail || "메시지 없음"}</div>
+                <div className="title">{item.device || '시스템'}</div>
+                <div className="desc">{item.detail || '메시지 없음'}</div>
               </div>
-              <div className="time">{item.time || "-"}</div>
+
+              <div className="time">{item.time || '-'}</div>
             </div>
 
             <div className="bottom">
               <div className="action">
-                상태: {item.status || "-"} / 모드: {item.mode || "-"}
+                상태: {toKoreanStatus(item.status)} / 모드:{' '}
+                {toKoreanStatus(item.mode)}
               </div>
             </div>
           </AlertCard>
@@ -277,5 +366,16 @@ const AlertCard = styled.div`
     font-weight: 700;
     color: #374151;
   }
+`;
 
+const MoreButton = styled.button`
+  width: 100%;
+  padding: 13px 14px;
+  border: none;
+  border-radius: 16px;
+  background: #111827;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
 `;

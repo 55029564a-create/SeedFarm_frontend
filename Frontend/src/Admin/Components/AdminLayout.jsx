@@ -12,7 +12,6 @@ import {
 const AdminLayout = () => {
   const location = useLocation();
 
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isBranchOpen, setIsBranchOpen] = useState(false);
 
   // 🚨 지점 명칭을 같은 건물 내 '동(방)' 개념으로 완벽 동기화
@@ -25,26 +24,6 @@ const AdminLayout = () => {
   const [selectedBranch, setSelectedBranch] = useState(branches[0]);
 
   // 🔔 알림 내용도 동 개념에 맞게 보강
-  const alerts = [
-    {
-      id: 1,
-      type: 'warning',
-      text: 'B동: 내부 온도 임계치(18°C) 미달 지속. 난방 점검 필요.',
-      time: '10분 전',
-    },
-    {
-      id: 2,
-      type: 'action',
-      text: 'C동: 습도 최적화를 위한 환기 팬 자동 가동',
-      time: '1시간 전',
-    },
-    {
-      id: 3,
-      type: 'normal',
-      text: '전 구역: 주간 생육 리포트 및 AI 편차 분석 완료',
-      time: '2시간 전',
-    },
-  ];
 
   const getPageInfo = () => {
     const path = location.pathname.toLowerCase();
@@ -76,33 +55,8 @@ const AdminLayout = () => {
           >
             <DropdownWrapper>
               <FixedHeaderBtn
-                className="alert"
-                onClick={() => {
-                  setIsAlertOpen(!isAlertOpen);
-                  setIsBranchOpen(false);
-                }}
-              >
-                <span>🔔 알림 ({alerts.length})</span>
-              </FixedHeaderBtn>
-
-              {isAlertOpen && (
-                <DropdownMenu className="alert-menu">
-                  <div className="menu-header">최근 관제 알림</div>
-                  {alerts.map((alert) => (
-                    <div key={alert.id} className={`alert-item ${alert.type}`}>
-                      <p>{alert.text}</p>
-                      <span className="time">{alert.time}</span>
-                    </div>
-                  ))}
-                </DropdownMenu>
-              )}
-            </DropdownWrapper>
-
-            <DropdownWrapper>
-              <FixedHeaderBtn
                 onClick={() => {
                   setIsBranchOpen(!isBranchOpen);
-                  setIsAlertOpen(false);
                 }}
               >
                 <span className="btn-text">{selectedBranch}</span>
@@ -167,10 +121,6 @@ const FixedHeaderBtn = styled(HeaderBtn)`
     margin-left: 0.5em;
     color: #94a3b8;
   }
-  &.alert {
-    min-width: 120px;
-    justify-content: center;
-  }
 `;
 
 const DropdownWrapper = styled.div`
@@ -196,43 +146,6 @@ const DropdownMenu = styled.div`
     to {
       opacity: 1;
       transform: translateY(0);
-    }
-  }
-  &.alert-menu {
-    min-width: 320px;
-    .menu-header {
-      padding: 1em;
-      font-weight: 800;
-      color: var(--primary-dark);
-      border-bottom: 1px solid #e2e8f0;
-      background-color: #f8fafc;
-    }
-    .alert-item {
-      padding: 1em;
-      border-bottom: 1px solid #f1f5f9;
-      cursor: pointer;
-      &:hover {
-        background-color: #f8fafc;
-      }
-      p {
-        margin: 0;
-        font-size: 0.9em;
-        font-weight: 600;
-        color: #334155;
-        line-height: 1.4;
-      }
-      .time {
-        font-size: 0.75em;
-        color: #94a3b8;
-        margin-top: 0.4em;
-        display: block;
-      }
-      &.warning p {
-        color: #e63946;
-      }
-      &.action p {
-        color: var(--point-green);
-      }
     }
   }
   .sector-item {
