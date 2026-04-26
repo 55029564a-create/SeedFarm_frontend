@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import FieldPageShell from '../Components/FieldPageShell';
 
@@ -121,6 +121,47 @@ export default function ControlPage() {
 
   const selectedDevice = devices.find((d) => d.id === selectedId);
   const manualCount = devices.filter((d) => d.mode === 'manual').length;
+
+  useEffect(() => {
+    const applyGlobalControlState = () => {
+      const saved = localStorage.getItem('globalControlState');
+      if (!saved) return;
+
+      const state = JSON.parse(saved);
+
+      if (state.mode === 'auto') {
+        setDevices((prev) =>
+          prev.map((device) => ({
+            ...device,
+            mode: 'auto',
+          })),
+        );
+        setEmergency(false);
+      }
+
+      if (state.mode === 'emergency') {
+        setEmergency(true);
+      }
+    };
+
+    applyGlobalControlState();
+
+    window.addEventListener(
+      'globalControlStateChanged',
+      applyGlobalControlState,
+    );
+
+    window.addEventListener('storage', applyGlobalControlState);
+
+    return () => {
+      window.removeEventListener(
+        'globalControlStateChanged',
+        applyGlobalControlState,
+      );
+
+      window.removeEventListener('storage', applyGlobalControlState);
+    };
+  }, []);
 
   const updateDevice = (id, nextData) => {
     setDevices((prev) =>

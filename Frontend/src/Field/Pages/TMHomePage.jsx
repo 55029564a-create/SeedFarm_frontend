@@ -6,6 +6,8 @@ import { FIELD_BATCH_ID } from '../fieldConfig';
 import c1 from '../../Admin/image/cctv1.png';
 import fallback from '../../Admin/image/fallback.jpg';
 
+const API_BASE_URL = 'http://localhost:8000/api/control';
+
 export default function TMHomePage() {
   const [dashboard, setDashboard] = useState(null);
   const [connected, setConnected] = useState(false);
@@ -13,13 +15,7 @@ export default function TMHomePage() {
   const [isRetrying, setIsRetrying] = useState(false);
   const retryTimerRef = useRef(null);
 
-  useEffect(() => {
-    return () => {
-      if (retryTimerRef.current) {
-        clearTimeout(retryTimerRef.current);
-      }
-    };
-  }, []);
+  const batchId = 1;
 
   const handleRetryCamera = () => {
     setIsRetrying(true);
@@ -52,6 +48,72 @@ export default function TMHomePage() {
       image: fallback,
       updatedAt: '3분 전',
     },
+  };
+
+  const devices = ['fan', 'heater', 'pump', 'light'];
+
+  const setAllAuto = async () => {
+    try {
+      await Promise.all(
+        devices.map((device) =>
+          fetch(`${API_BASE_URL}/device/mode/${batchId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              device,
+              mode: 'auto',
+            }),
+          }),
+        ),
+      );
+
+      localStorage.setItem(
+        'globalControlState',
+        JSON.stringify({
+          mode: 'auto',
+          emergency: false,
+          updatedAt: Date.now(),
+        }),
+      );
+
+      window.dispatchEvent(new Event('globalControlStateChanged'));
+
+      alert('전체 장치가 자동모드로 변경되었습니다.');
+    } catch (error) {
+      console.error('자동모드 실패:', error);
+      alert('자동모드 변경 실패');
+    }
+  };
+
+  const setAllEmergency = async (isStop) => {
+    try {
+      await Promise.all(
+        devices.map((device) =>
+          fetch(
+            `${API_BASE_URL}/emergency/${batchId}/${device}?is_stop=${isStop}`,
+            {
+              method: 'POST',
+            },
+          ),
+        ),
+      );
+
+      localStorage.setItem(
+        'globalControlState',
+        JSON.stringify({
+          mode: 'emergency',
+          emergency: isStop,
+          updatedAt: Date.now(),
+        }),
+      );
+
+      window.dispatchEvent(new Event('globalControlStateChanged'));
+
+      alert('전체 긴급정지 완료');
+    } catch (error) {
+      console.error('긴급정지 실패:', error);
+      alert('긴급정지 실패');
+    }
   };
 
   const currentRoom = rooms[activeRoom] || rooms['A룸'];
@@ -145,6 +207,7 @@ export default function TMHomePage() {
             {overview?.score ?? '-'}
           </p>
         </HeroCard>
+
         <CameraCard>
           <div className="camera-view">
             {isRetrying ? (
@@ -206,8 +269,12 @@ export default function TMHomePage() {
 
       <SectionTitle>빠른 조치</SectionTitle>
       <ActionGrid>
-        <ActionBtn $light>자동모드</ActionBtn>
-        <ActionBtn $danger>긴급정지</ActionBtn>
+        <ActionBtn $light onClick={setAllAuto}>
+          자동모드
+        </ActionBtn>
+        <ActionBtn $danger onClick={() => setAllEmergency(true)}>
+          긴급정지
+        </ActionBtn>
       </ActionGrid>
 
       <SectionTitle>이벤트 내역</SectionTitle>
