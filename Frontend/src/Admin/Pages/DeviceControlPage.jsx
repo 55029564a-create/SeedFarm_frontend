@@ -2,12 +2,15 @@ import React, { useState, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
 import { useOutletContext } from 'react-router-dom';
 import { BaseCard, CardTitle, Flex } from './Styles/AdminShared';
-import {getDeviceState,
+import {
+  getDeviceState,
   setDeviceMode,
   setDeviceTarget,
   stopDevice,
-  getControlLogs}
-  from '../../api/control';
+  getControlLogs,
+} from '../../api/control';
+
+const API_BASE = 'http://127.0.0.1:8000/api';
 
 const DEVICE_API_MAP = {
   temp: 'heater',
@@ -21,6 +24,7 @@ const DEVICE_API_MAP = {
 const DeviceControlPage = () => {
   const { selectedBranch } = useOutletContext();
   const [activeSector, setActiveSector] = useState(1);
+  const [emergencyState, setEmergencyState] = useState({});
   const batchId = 1;
 
   // 🚨 한글화 및 환경 목표 중심으로 세팅된 데이터
@@ -62,18 +66,18 @@ const DeviceControlPage = () => {
       },
       {
         id: 'pump',
-        name: '일일 관수량',
-        unit: 'L',
-        min: 0,
-        max: 10,
-        step: 0.5,
-        safeMin: 1,
-        safeMax: 5,
+        name: '목표 토양 수분',
+        unit: '%',
+        min: 10,
+        max: 80,
+        step: 1,
+        safeMin: 30,
+        safeMax: 55,
         relatedDevice: 'irrigation',
       },
       {
         id: 'nutri',
-        name: '양액 농도 (EC)',
+        name: '토양 양액 농도 (EC)',
         unit: 'EC',
         min: 0.5,
         max: 3.0,
@@ -131,18 +135,18 @@ const DeviceControlPage = () => {
       },
       {
         id: 'pump',
-        name: '일일 관수량',
-        unit: 'L',
-        min: 0,
-        max: 10,
-        step: 0.5,
-        safeMin: 1,
-        safeMax: 5,
+        name: '목표 토양 수분',
+        unit: '%',
+        min: 10,
+        max: 80,
+        step: 1,
+        safeMin: 30,
+        safeMax: 55,
         relatedDevice: 'irrigation',
       },
       {
         id: 'nutri',
-        name: '양액 농도 (EC)',
+        name: '토양 양액 농도 (EC)',
         unit: 'EC',
         min: 0.5,
         max: 3.0,
@@ -200,18 +204,18 @@ const DeviceControlPage = () => {
       },
       {
         id: 'pump',
-        name: '일일 관수량',
-        unit: 'L',
-        min: 0,
-        max: 10,
-        step: 0.5,
-        safeMin: 1,
-        safeMax: 5,
+        name: '목표 토양 수분',
+        unit: '%',
+        min: 10,
+        max: 80,
+        step: 1,
+        safeMin: 30,
+        safeMax: 55,
         relatedDevice: 'irrigation',
       },
       {
         id: 'nutri',
-        name: '양액 농도 (EC)',
+        name: '토양 양액 농도 (EC)',
         unit: 'EC',
         min: 0.5,
         max: 3.0,
@@ -239,20 +243,55 @@ const DeviceControlPage = () => {
   const [logs, setLogs] = useState([]);
   const [isOverrideMode, setIsOverrideMode] = useState(false);
   const [tempValue, setTempValue] = useState(0);
-  
 
+  const DEVICE_NAME_MAP = {
+    co2_gen: 'CO2 발생기',
+    light: 'LED 보광등',
+    irrigation: '관수 펌프',
+    fertigation: '양액 공급기',
+    heater: '히터',
+    cooler: '냉각기',
+  };
+  const getDefaultManualValue = (device) => {
+    if (!device) return 0;
+
+    if (device.id === 'temp') return 23;
+    if (device.id === 'humi') return 60;
+    if (device.id === 'light') return 80;
+    if (device.id === 'pump') return 30;
+    if (device.id === 'nutri') return 1.5;
+    if (device.id === 'co2') return 900;
+
+    return device.safeMin ?? 0;
+  };
 
   const currentDevices = (sectorData[activeSector] || []).map((config) => {
     const apiKey = DEVICE_API_MAP[config.id];
-    const server = deviceState[activeSector]?.[apiKey];
+    const server = deviceState?.[apiKey];
+
+    const autoRange =
+      config.id === 'temp'
+        ? '20~26'
+        : config.id === 'humi'
+          ? '55~70'
+          : config.id === 'co2'
+            ? '700~900'
+            : config.id === 'pump'
+              ? '30~55'
+              : config.id === 'nutri'
+                ? '1.0~1.8'
+                : config.id === 'light'
+                  ? '60~90'
+                  : `${config.safeMin}~${config.safeMax}`;
 
     return {
       ...config,
+      isEmergency: emergencyState?.[apiKey] === true,
       isAuto: server ? server.mode !== 'manual' : true,
       value:
         server && server.target !== null && server.target !== undefined
           ? server.target
-          : config.min,
+          : autoRange,
     };
   });
 
@@ -260,31 +299,29 @@ const DeviceControlPage = () => {
     return currentDevices.find((d) => d.id === selectedId);
   }, [currentDevices, selectedId]);
 
-
   useEffect(() => {
     if (selectedDevice && tempValue === null) {
       setTempValue(selectedDevice.value);
     }
   }, [selectedDevice]);
 
-
   const loadDeviceState = async () => {
     try {
       const data = await getDeviceState(batchId);
       setDeviceState(data.devices || {});
+      setEmergencyState(data.emergency || {});
     } catch (err) {
       console.error('device-state 조회 실패', err);
     }
   };
 
-
   const handleSwitchToManual = () => {
+    setTempValue(getDefaultManualValue(selectedDevice));
     setIsOverrideMode(true);
   };
 
-
   const handleSwitchToAuto = async () => {
-    if (!selectedDevice) return;    
+    if (!selectedDevice) return;
     const apiDevice = DEVICE_API_MAP[selectedDevice.id];
     await setDeviceMode(batchId, apiDevice, 'auto');
     await loadDeviceState();
@@ -293,21 +330,16 @@ const DeviceControlPage = () => {
   const loadLogs = async () => {
     try {
       const res = await fetch(`${API_BASE}/control/logs/${batchId}`);
+      const json = await res.json();
 
-      const text = await res.text();
-
-      console.log('logs raw:', text);
-
-      const json = JSON.parse(text);
-
-      const mappedLogs = (json || []).map((log) => ({
+      const mappedLogs = (json || []).slice(0, 10).map((log) => ({
         id: log.id,
-
-        time: log.status,
-
-        device: log.device,
-
-        action: log.message,
+        time: log.time,
+        device: DEVICE_NAME_MAP[log.device] || log.device,
+        isOn: String(log.is_on || '').toLowerCase(),
+        message: log.detail || log.message || '',
+        status: log.status,
+        mode: log.mode,
       }));
 
       setLogs(mappedLogs);
@@ -355,13 +387,14 @@ const DeviceControlPage = () => {
       await loadDeviceState();
       await loadLogs();
 
-      alert( `🚨 [경고] ${targetDevice.name} 연동 기기가 즉시 강제 차단되었습니다.`,);
+      alert(
+        `🚨 [경고] ${targetDevice.name} 연동 기기가 즉시 강제 차단되었습니다.`,
+      );
     } catch (err) {
       console.error('긴급 정지 실패', err);
       alert('긴급 정지에 실패했습니다.');
     }
   };
-
 
   // 취소 버튼에서 복귀
   const handleCancel = () => {
@@ -372,7 +405,6 @@ const DeviceControlPage = () => {
   useEffect(() => {
     setIsOverrideMode(false);
   }, [activeSector]);
- 
 
   useEffect(() => {
     if (selectedDevice) {
@@ -422,10 +454,16 @@ const DeviceControlPage = () => {
                   key={`${activeSector}-${device.id}`}
                   onClick={() => {
                     setSelectedId(device.id);
-                    setTempValue(device.value);
+                    setTempValue(
+                      typeof device.value === 'number'
+                        ? device.value
+                        : getDefaultManualValue(device),
+                    );
                     setIsOverrideMode(false);
                   }}
-                  className={selectedId === device.id ? 'selected' : ''}
+                  className={`${selectedId === device.id ? 'selected' : ''} ${
+                    device.isEmergency ? 'emergency' : ''
+                  }`}
                 >
                   <div className="card-top">
                     <span className="device-name">{device.name}</span>
@@ -440,15 +478,25 @@ const DeviceControlPage = () => {
                       }}
                     >
                       <span
-                        className={`status-tag ${device.isAuto ? 'auto' : 'manual'}`}
+                        className={`status-tag ${
+                          device.isEmergency
+                            ? 'emergency'
+                            : device.isAuto
+                              ? 'auto'
+                              : 'manual'
+                        }`}
                       >
-                        {device.isAuto ? '자동' : '수동'}
+                        {device.isEmergency
+                          ? '긴급정지'
+                          : device.isAuto
+                            ? '자동'
+                            : '수동'}
                       </span>
 
                       <StopBtn
                         onClick={(e) => handleEmergencyStop(device.id, e)}
                       >
-                        긴급 정지
+                        {device.isEmergency ? '정지 중' : '긴급 정지'}
                       </StopBtn>
                     </div>
                   </div>
@@ -479,15 +527,23 @@ const DeviceControlPage = () => {
             <HistoryList>
               {logs.map((log, idx) => (
                 <li
-                  key={idx}
-                  className={log.action.includes('긴급') ? 'emergency' : ''}
+                  key={log.id || idx}
+                  className={log.status === 'triggered' ? 'emergency' : ''}
                 >
                   <span className="time">{log.time}</span>
 
-                  <div className="log-content">
+                  <div className="log-line">
                     <strong>{log.device}</strong>
 
-                    <span>{log.action}</span>
+                    <span
+                      className={`onoff ${log.isOn === 'on' ? 'on' : 'off'}`}
+                    >
+                      {log.isOn === 'on' ? 'ON' : 'OFF'}
+                    </span>
+
+                    <span className="msg">
+                      {log.message ? `(${log.message})` : ''}
+                    </span>
                   </div>
                 </li>
               ))}
@@ -523,10 +579,7 @@ const DeviceControlPage = () => {
                   최적 생육 타겟을 자동 유지하고 있습니다.
                 </p>
 
-                <button
-                  className="switch-btn"
-                  onClick={handleSwitchToManual}
-                >
+                <button className="switch-btn" onClick={handleSwitchToManual}>
                   목표값 강제 개입 (수동 모드)
                 </button>
               </AutoLockedBox>
@@ -782,6 +835,13 @@ const DeviceCard = styled.div`
       0 4px 16px rgba(16, 185, 129, 0.1);
   }
 
+  .status-tag {
+    &.emergency {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+  }
   .card-top {
     display: flex;
 
@@ -824,6 +884,10 @@ const DeviceCard = styled.div`
         color: #ef4444;
 
         border: 1px solid #fecaca;
+      }
+      &.emergency {
+        border-color: #ef4444;
+        background: #fff1f2;
       }
     }
   }
@@ -906,7 +970,10 @@ const StopBtn = styled.button`
 `;
 
 const HistoryCard = styled(BaseCard)`
-  flex: 1;
+  flex: 0 0 230px;
+  min-height: 230px;
+  max-height: 230px;
+  overflow: hidden;
 
   box-shadow:
     0 4px 6px -1px rgba(15, 23, 42, 0.05),
@@ -915,11 +982,11 @@ const HistoryCard = styled(BaseCard)`
 
 const HistoryList = styled.ul`
   list-style: none;
-
   padding: 0;
-
   margin: 0;
 
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
 
   &::-webkit-scrollbar {
@@ -928,74 +995,79 @@ const HistoryList = styled.ul`
 
   &::-webkit-scrollbar-thumb {
     background: #e2e8f0;
-
     border-radius: 4px;
   }
 
   li {
+    height: 32px;
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 0 6px;
+    border-radius: 8px;
+    color: #334155;
+  }
+
+  li + li {
+    margin-top: 6px;
+  }
+
+  li:hover {
+    background: #f8fafc;
+  }
+
+  li.emergency {
+    background: #fff1f2;
+  }
+
+  .time {
+    font-size: 11px;
+    font-weight: 800;
+    color: #94a3b8;
+  }
+
+  .log-line {
+    min-width: 0;
     display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
 
-    gap: 15px;
+  strong {
+    font-size: 12px;
+    font-weight: 900;
+    color: #0f172a;
+    flex-shrink: 0;
+  }
 
-    padding: 12px 0;
+  .onoff {
+    font-size: 10px;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
 
-    border-bottom: 1px solid #f8fafc;
+  .onoff.on {
+    color: #059669;
+    background: #dcfce7;
+  }
 
-    transition: background 0.2s;
+  .onoff.off {
+    color: #64748b;
+    background: #e2e8f0;
+  }
 
-    &.emergency {
-      background: #fff1f2;
-
-      padding-left: 10px;
-
-      border-radius: 8px;
-
-      .time,
-      strong,
-      span {
-        color: #e11d48;
-      }
-    }
-
-    &:hover {
-      background: #f8fafc;
-
-      border-radius: 8px;
-
-      padding-left: 8px;
-    }
-
-    .time {
-      font-size: 12px;
-
-      font-weight: 700;
-
-      color: #94a3b8;
-
-      width: 60px;
-    }
-
-    .log-content {
-      display: flex;
-
-      flex-direction: column;
-
-      gap: 4px;
-
-      font-size: 13px;
-
-      strong {
-        color: #0f172a;
-
-        font-weight: 800;
-      }
-
-      span {
-        color: #64748b;
-
-        font-weight: 600;
-      }
-    }
+  .msg {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
   }
 `;
 
