@@ -50,7 +50,16 @@ export default function TMHomePage() {
     },
   };
 
-  const devices = ['fan', 'heater', 'pump', 'light'];
+  const devices = [
+    'fan',
+    'irrigation',
+    'fertigation',
+    'humidifier',
+    'heater',
+    'cooler',
+    'co2_gen',
+    'light',
+  ];
 
   const setAllAuto = async () => {
     try {
