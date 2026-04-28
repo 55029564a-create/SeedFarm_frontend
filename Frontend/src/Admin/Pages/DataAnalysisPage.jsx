@@ -87,11 +87,12 @@ const DataAnalysisPage = () => {
 
         // 👉 프론트 그래프에 맞게 변환
         const formatted = res.data.map((d) => ({
-          label: d.label || d.created_at || d.date,
-          temp: d.temperature ?? null,
-          extTemp: d.external_temperature ?? null,
-          height: d.plant_height ?? null,
-          stdHeight: d.standard_height ?? null,
+          label: d.label || d.created_at || d.recorded_at || d.date,
+          temp: d.temperature ?? d.avg_temp ?? d.temp ?? null,
+          extTemp:
+            d.external_temperature ?? d.ext_temp ?? d.outside_temp ?? null,
+          height: d.plant_height ?? d.height ?? d.avg_height ?? null,
+          stdHeight: d.standard_height ?? d.target_height ?? 90,
         }));
 
         setStatsData(formatted);
@@ -150,18 +151,29 @@ const DataAnalysisPage = () => {
     // growthDelta를 % 증가율로 변환 (평균 키 대비) — 실제 API 데이터만 사용
     const currentHeight = Number(safeData.currentHeight) || 1;
 
+    const toGrowthPercent = (delta) => {
+      const value = Number(delta);
+
+      if (!Number.isFinite(value)) return null;
+
+      // 마이너스 몇천 % 방지
+      if (value < 0) return 0;
+
+      return +((value / currentHeight) * 100).toFixed(1);
+    };
+
     safeData.growthPct = {
       day:
         rawData.growthDelta?.day != null
-          ? +((rawData.growthDelta.day / currentHeight) * 100).toFixed(1)
+          ? toGrowthPercent(rawData.growthDelta.day)
           : null,
       week:
         rawData.growthDelta?.week != null
-          ? +((rawData.growthDelta.week / currentHeight) * 100).toFixed(1)
+          ? toGrowthPercent(rawData.growthDelta.week)
           : null,
       month:
         rawData.growthDelta?.month != null
-          ? +((rawData.growthDelta.month / currentHeight) * 100).toFixed(1)
+          ? toGrowthPercent(rawData.growthDelta.month)
           : null,
     };
 
@@ -172,8 +184,6 @@ const DataAnalysisPage = () => {
 
     return safeData;
   }, [rawData, selectedBranch]);
-  console.log('데이터페이지 height:', currentData?.currentHeight);
-  console.log('데이터페이지 growthDelta:', rawData?.growthDelta);
   const activeChartData = statsData || [];
 
   const xLabels = useMemo(() => {

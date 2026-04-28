@@ -2,10 +2,24 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom'; // 🚨 1. 페이지 이동을 위한 훅 추가!
 import { PageContainer } from './Styles/AdminShared';
-import { login } from "../../Api/auth";
+import { login } from '../../Api/auth';
 
 const LoginPage = () => {
   const navigate = useNavigate(); // 🚨 2. 네비게이트 함수 초기화!
+  const LeafIcon = () => (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="icon-svg"
+    >
+      <path d="M11 20A7 7 0 0 1 4 13C4 7 10 3 16 3c0 6-4 12-10 12" />
+      <path d="M11 20v-5" />
+    </svg>
+  );
 
   // 로그인 폼 상태 관리
   const [loginInputs, setLoginInputs] = useState({ id: '', password: '' });
@@ -41,11 +55,10 @@ const LoginPage = () => {
         localStorage.setItem('savedId', loginInputs.id);
       }
 
-      console.log("로그인 성공");
+      console.log('로그인 성공');
 
       const isField = window.innerWidth <= 1024;
       navigate(isField ? '/field' : '/dashboard');
-
     } catch (err) {
       console.error(err);
       alert('로그인 실패: 아이디 또는 비밀번호 확인');
@@ -57,9 +70,9 @@ const LoginPage = () => {
       <LoginBox>
         <div className="logo-area">
           <div className="icon-wrapper">
-            <span className="icon">🌱</span>
+            <LeafIcon />
           </div>
-          <h1 className="brand">Seed Farm</h1>
+          <h1 className="brand">Seed-Farm</h1>
           <p className="subtitle">AI Smart Farm Control Center</p>
         </div>
 
@@ -185,8 +198,11 @@ const LoginBox = styled.div`
       border: 1px solid #bbf7d0;
       box-shadow: 0 4px 10px rgba(16, 185, 129, 0.1);
 
-      .icon {
-        font-size: 2em;
+      color: #10b981; /* 아이콘 색상 추가 */
+
+      .icon-svg {
+        width: 2.2em;
+        height: 2.2em;
       }
     }
 

@@ -316,6 +316,81 @@ const DashboardPage = () => {
   const cropStatus = serverDashboard?.crop_status;
   const deviceLogs = serverDashboard?.device_logs || [];
   const aiReports = serverDashboard?.ai_reports || [];
+  const DEVICE_NAME_MAP = {
+    pump: '관수 펌프',
+    irrigation: '관수',
+    watering: '관수',
+    water: '관수',
+    valve: '밸브',
+
+    nutri: '양액 공급기',
+    nutrient: '양액 공급기',
+    nutrition: '양액 공급기',
+    fertilizer: '양액 공급기',
+
+    fan: '환기 팬',
+    ventilation: '환기',
+    vent: '환기',
+
+    led: 'LED 조명',
+    light: 'LED 조명',
+    lighting: '조명',
+
+    heater: '난방기',
+    heating: '난방',
+    cooler: '냉방기',
+    cooling: '냉방',
+
+    co2: 'CO2 공급기',
+  };
+
+  const DEVICE_MODE_MAP = {
+    auto: '자동',
+    automatic: '자동',
+    manual: '수동',
+
+    on: 'ON',
+    off: 'OFF',
+    open: '열림',
+    close: '닫힘',
+    closed: '닫힘',
+
+    start: '가동',
+    started: '가동',
+    stop: '중지',
+    stopped: '중지',
+
+    issued: '명령 전송',
+    done: '완료',
+    success: '성공',
+    fail: '실패',
+    failed: '실패',
+
+    triggered: '자동 개입',
+    applied: '적용 완료',
+  };
+
+  const translateDeviceName = (value) => {
+    return (
+      DEVICE_NAME_MAP[String(value || '').toLowerCase()] || value || '시스템'
+    );
+  };
+
+  const translateDeviceMode = (value) => {
+    return DEVICE_MODE_MAP[String(value || '').toLowerCase()] || value || '-';
+  };
+
+  const translateDeviceText = (text) => {
+    if (!text) return '';
+
+    return String(text).replace(
+      /pump|irrigation|watering|water|valve|nutri|nutrient|nutrition|fertilizer|fan|ventilation|vent|led|light|lighting|heater|heating|cooler|cooling|co2|auto|automatic|manual|issued|done|success|fail|failed|triggered|applied|start|started|stop|stopped|on|off|open|close|closed/gi,
+      (match) =>
+        DEVICE_NAME_MAP[match.toLowerCase()] ||
+        DEVICE_MODE_MAP[match.toLowerCase()] ||
+        match,
+    );
+  };
 
   const getPhaseByProgress = (percent) => {
     if (percent < 20) return '🌱';
@@ -502,9 +577,9 @@ const DashboardPage = () => {
     ? deviceLogs.map((log) => ({
         id: log.id,
         time: log.time || '-',
-        device: log.device,
-        action: log.mode,
-        desc: log.detail || '',
+        device: translateDeviceName(log.device),
+        action: translateDeviceMode(log.mode || log.status),
+        desc: translateDeviceText(log.detail),
         status: log.status === 'issued' ? 'active' : 'done',
       }))
     : [];
