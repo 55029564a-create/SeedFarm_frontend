@@ -1,125 +1,220 @@
 # Seed Farm
 
-AI 기반 스마트팜 자동 제어 및 관제 시스템
+AI 기반 스마트팜 자동 제어 및 관제 시스템입니다.  
+환경 센서 데이터와 CCTV 기반 작물 이미지를 활용해 생육 상태를 분석하고, 이상 징후 발생 시 알림 및 장치 제어를 지원하는 관제 시스템입니다.
 
-## 프로젝트 소개
+## My Role
 
-Seed Farm은 환경 센서 데이터와 CCTV 기반 작물 이미지를 활용하여 작물의 생육 상태를 분석하고, 이상 징후 발생 시 알림 및 장치 제어를 지원하는 스마트팜 관제 시스템입니다.
-
-기존 스마트팜이 센서 데이터 중심으로 동작하는 한계를 보완하기 위해 이미지 기반 AI 분석과 환경 데이터 모니터링을 결합했습니다. 관리자는 대시보드를 통해 온도, 습도, CO2, 일사량, 토양 상태, 생육 데이터를 확인할 수 있으며, 환풍기·관수 장치 등의 제어 이력과 알림 내역을 함께 관리할 수 있습니다.
-
-## 개발 기간
-
-2026.02 ~ 2026.04
-
-## 팀 구성
-
-7인 팀 프로젝트
-
-## 담당 역할
-
-팀장 / 프론트엔드 / 시스템 구조 설계
+팀장 / 프론트엔드 / 기획 및 시스템 구조 설계
 
 - 팀 커뮤니케이션 및 일정 관리
 - 회의 주도, 발표 자료 제작 및 프로젝트 방향성 정리
-- 스마트팜 시스템 구조, 토마토 생육 환경, 기업형 스마트팜 사례 등 기획 자료 조사
-- 시스템 전체 아키텍처 방향성 수립
+- 스마트팜 구조, 토마토 생육 환경, 기업형 스마트팜 사례 조사
 - PC 기반 관리자 관제 화면 설계 및 프론트엔드 개발
 - 백엔드 API와 프론트엔드 화면 기능 연결
-- 대시보드, 데이터 분석, 장치 제어, 알림 페이지 UI 구현
 - 실제 DB 데이터 기반 UI 표시 및 더미 데이터 제거
 - 시연용 실제 데이터 수집 및 DB 입력
 
-## 기술 스택
+## Tech Stack
 
-### Frontend
-- React
-- Vite
-- JavaScript
-- styled-components
-- Axios
+- Frontend: React, Vite, JavaScript, styled-components, Axios, Recharts
+- Backend: FastAPI, Python
+- Database: Oracle, MongoDB
+- AI/ML: 이미지 기반 생육 상태 분석 모델 연동 구조 활용
+- Tools: Git, GitHub, Figma, Notion, VS Code
 
-### Backend
-- FastAPI
-- Python
-- WebSocket
-
-### Database
-- Oracle
-- MongoDB
-
-### AI / ML
-- ResNet18
-- ResNet34
-- 이미지 기반 생육 상태 분석
-
-### Tools
-- GitHub
-- Figma
-- Notion
-- VS Code
-- Discord
-- Telegram
-
-## 주요 기능
-
-### 1. 통합 대시보드
-
-- 온도, 습도, CO2, 일사량 등 환경 데이터 요약
-- 작물 생육 진행도 표시
-- AI 분석 결과 기반 이상 상태 확인
-- 실시간 관제에 필요한 핵심 정보 시각화
-
-### 2. 생육 데이터 분석
-
-- 초장, 엽장, 엽폭, 엽수 등 생육 지표 조회
-- 기간별 생장 추이 그래프 제공
-- 환경 데이터와 생육 데이터 비교 분석
-- 성장 변화량 기반 시각화
-
-### 3. 환경 데이터 모니터링
-
-- 온도, 습도, CO2, 토양 수분, pH 등 환경 측정값 조회
-- 기간별 환경 변화 그래프 제공
-- 생육 환경 기준값과 실제 측정값 비교
-
-### 4. 장치 제어 관리
-
-- 환풍기, 관수 장치 등 제어 상태 확인
-- 자동/수동 제어 이력 관리
-- 장치 작동 로그 조회
-
-### 5. 알림 및 이상 감지
-
-- AI 분석 결과 기반 이상 징후 표시
-- 병충해 및 생육 이상 알림 관리
-- 알림 상태 및 처리 내역 확인
-
-## 프로젝트에서 중점적으로 해결한 문제
-
-### 실제 데이터 기반 화면 구성
-
-초기 화면에는 일부 더미 데이터와 임시 값이 섞여 있어 프론트엔드에 표시되는 수치가 실제 DB 데이터와 일치하지 않는 문제가 있었습니다. 이를 해결하기 위해 FastAPI API 응답 구조를 확인하고, Oracle DB 조회 결과를 기준으로 대시보드와 분석 페이지의 데이터를 연동했습니다.
-
-### 대시보드와 분석 페이지 수치 일관성 개선
-
-대시보드와 데이터 분석 페이지에서 생육 진행률과 성장 변화량 계산 방식이 달라 사용자에게 혼란을 줄 수 있었습니다. 동일한 기준 높이와 계산 방식을 적용하도록 수정하여 페이지 간 수치 일관성을 맞추는 방향으로 개선했습니다.
-
-### 관제 화면 UI/UX 개선
-
-관리자가 한 화면에서 핵심 정보를 빠르게 확인할 수 있도록 카드형 레이아웃, 그래프, 상태 표시 영역을 구성했습니다. 또한 화면 해상도에 따라 박스가 깨지거나 데이터 카드가 부모 영역을 벗어나는 문제를 수정하며 반응형 UI를 개선했습니다.
-
-## 프로젝트를 통해 배운 점
-
-- 실제 현장 시스템에서는 화면 디자인보다 데이터 신뢰성과 흐름의 일관성이 중요하다는 것을 경험했습니다.
-- 프론트엔드 화면은 단순히 API를 호출하는 것이 아니라, 사용자가 판단할 수 있는 형태로 데이터를 정리하고 표현해야 한다는 점을 배웠습니다.
-- 팀장 역할을 수행하며 일정 관리, 기능 우선순위 조율, 팀원 간 커뮤니케이션의 중요성을 체감했습니다.
-- 제조 현장 경험을 바탕으로 스마트팜의 관제, 제어, 이력 관리 흐름을 더 현실적인 업무 시스템 관점에서 설계할 수 있었습니다.
-
-## 관련 저장소
+## Related Repositories
 
 | 구분 | 저장소 |
 |---|---|
 | Frontend | 현재 저장소 |
 | Backend | [SeedFarm_backend](https://github.com/55029564a-create/SeedFarm_backend) |
 | AI / ML | [SeedFarm_ML](https://github.com/55029564a-create/SeedFarm_ML) |
+
+---
+
+# 🚀 프로젝트 로컬 환경 세팅 가이드
+
+> **진행 환경**: VS Code 터미널 (Command Prompt 기준)
+
+<br>
+
+## 🎨 1. 프론트엔드 (Frontend)
+
+1. **레포지토리 클론**
+
+```bash
+git clone https://github.com/55029564a-create/SeedFarm_frontend.git
+```
+
+2. **패키지 설치**  
+   VS Code 터미널에서 설치 경로로 이동 후 아래 명령어를 실행합니다.
+
+```bash
+npm install
+```
+
+3. **작업 폴더로 이동**
+
+```bash
+cd frontend
+```
+
+4. **프로젝트 실행**
+
+```bash
+npm start
+```
+
+> 💡 **Tip:** 실행이 안 될 경우, `npm start`를 입력했던 경로에서 `npm install`을 다시 실행해 보세요.
+
+<br>
+
+## ⚙️ 2. 백엔드 (Backend)
+
+1. **레포지토리 클론**
+
+```bash
+git clone https://github.com/55029564a-create/SeedFarm_backend.git
+```
+
+2. **가상환경 생성 및 실행**  
+   VS Code 터미널에서 백엔드 설치 경로로 이동 후 가상환경을 세팅합니다.
+
+```bash
+python -m venv .venv
+.venv\scripts\activate.bat
+```
+
+3. **요구 패키지 설치**
+
+```bash
+pip install -r requirements.txt
+```
+
+4. **FastAPI 서버 실행**
+
+```bash
+uvicorn app.main:app --reload
+```
+
+- 🔗 **Swagger UI 주소**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+<br>
+
+## 🗄️ 3. 데이터베이스 (Oracle DB)
+
+### 📥 오라클 설치
+
+- **버전**: Oracle Database 21c Express Edition for Windows (64-bit)
+- **다운로드 링크**: [Oracle 공식 홈페이지](https://www.oracle.com/kr/database/technologies/xe-downloads.html)
+
+### 👤 계정 및 권한 설정
+
+CMD 창을 열고 아래 순서대로 명령어를 실행합니다.
+
+1. **설치 및 접속 확인** *(1234는 설치 시 설정한 비밀번호)*
+
+```bash
+sqlplus system/1234@localhost:1521/XEPDB1
+```
+
+2. **계정 생성 및 권한 부여**  
+   SQL 쉘 내부에서 실행합니다.
+
+```sql
+-- 계정 생성
+CREATE USER smart1234 IDENTIFIED BY farm1234;
+
+-- 기본 권한 부여
+GRANT CONNECT, RESOURCE TO smart1234;
+
+-- 테이블스페이스 사용 권한 부여
+ALTER USER smart1234 QUOTA UNLIMITED ON USERS;
+
+-- 생성 확인
+SELECT username FROM dba_users;
+```
+
+### 🛠️ DB 테이블 초기화
+
+프로젝트 루트 경로에서 아래 스크립트를 실행하여 테이블을 세팅합니다.
+
+```bash
+# 테이블 초기 생성
+sqlplus smart1234/farm1234@localhost:1521/XEPDB1 @app/db_init_.sql
+
+# 문제 발생 시 테이블 리셋
+sqlplus smart1234/farm1234@localhost:1521/XEPDB1 @app/db_reset.sql
+```
+
+<br>
+
+## 🤖 4. 머신러닝 (ML / AI)
+
+### 🧠 AI 모델 1
+
+1. **레포지토리 클론**
+
+```bash
+git clone https://github.com/55029564a-create/SeedFarm_ML.git
+```
+
+2. **가상환경 종료**  
+   터미널 경로 앞에 `.venv`가 표시된 경우 실행합니다.
+
+```bash
+deactivate
+```
+
+3. **요구 패키지 설치 및 실행**
+
+```bash
+pip install -r requirements-api.txt
+python -m serving
+```
+
+> 💡 **Tip:** 실행이 안 될 경우, `requirements-ml.txt`, `requirements-dev.txt` 등 다른 requirements 파일도 모두 설치한 후 다시 실행해 보세요.
+
+### 🧠 AI 모델 2
+
+1. **레포지토리 클론 및 브랜치 전환**
+
+```bash
+git clone https://github.com/55029564a-create/SeedFarm_ML.git
+git checkout other
+```
+
+2. **가상환경 종료**  
+   터미널 경로 앞에 `.venv`가 표시된 경우 실행합니다.
+
+```bash
+deactivate
+```
+
+3. **요구 패키지 설치 및 실행**
+
+```bash
+pip install -r requirements.txt
+python run.py
+```
+
+<br>
+
+## 🕹️ 5. 시뮬레이터 실행 (Simulator)
+
+각 시뮬레이터는 백엔드 파일 내부의 해당 폴더로 이동(`cd`)한 후 실행합니다.
+
+### 일반 시뮬레이터 실행
+
+```bash
+cd simulator
+python simulator1.py
+```
+
+### 이미지(CCTV) 시뮬레이터 실행
+
+```bash
+cd cctv_simulator
+python cctv_simulator.py
+```
